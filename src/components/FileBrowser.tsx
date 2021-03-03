@@ -387,8 +387,8 @@ export function FileBrowser(props: FileBrowserProps) {
           setImportDialogVis(true);
         }}
         refresh={() => {
-          if (rootKey) {
-            refreshFilesAndDirs(rootKey);
+          if (currentRecord.key) {
+            refreshFilesAndDirs(currentRecord.key);
           }
         }}
       />
