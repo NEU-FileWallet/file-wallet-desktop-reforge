@@ -1,0 +1,11 @@
+.mdui-list-item-content {
+  margin-left: 16px !important;
+}
+
+.mdui-collapse-item-body > .mdui-list-item {
+  padding-left: 56px !important ;
+}
+
+.mdui-list-dense {
+    padding: 0 !important;
+}

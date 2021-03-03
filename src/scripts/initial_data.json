@@ -1,0 +1,66 @@
+{
+  "123": {
+    "name": "学习资料",
+    "directories": [],
+    "owner": "1213",
+    "files": [
+
+    ],
+    "editor": "owner",
+    "date": 1609490672572,
+    "cooperators": [],
+    "subscribers": [],
+    "deleted": false,
+    "visibility": "Private"
+  },
+  "222": {
+    "name": "学习资料2",
+    "directories": [],
+    "owner": "1213",
+    "files": [
+      {
+        "cid": "123123",
+        "cipher": "123123",
+        "name": "6777.jpg",
+        "createDate": 1609490672572
+      }
+    ],
+    "editor": "owner",
+    "date": 1609490672572,
+    "cooperators": [],
+    "subscribers": [],
+    "deleted": false,
+    "visibility": "Private"
+  },
+  "333": {
+    "name": "学习资料3",
+    "directories": [],
+    "owner": "1213",
+    "files": [
+      {
+        "cid": "123123",
+        "cipher": "123123",
+        "name": "666.jpg",
+        "createDate": 1609490672572
+      }
+    ],
+    "editor": "owner",
+    "date": 1609490672572,
+    "cooperators": [],
+    "subscribers": [],
+    "deleted": false,
+    "visibility": "Private"
+  },
+  "share": {
+    "name": "share",
+    "directories": [],
+    "owner": "1213",
+    "files": [],
+    "editor": "owner",
+    "date": 1609490672572,
+    "cooperators": [],
+    "subscribers": [],
+    "deleted": false,
+    "visibility": "Private"
+  }
+}

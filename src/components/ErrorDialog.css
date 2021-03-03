@@ -1,0 +1,7 @@
+.mdui-dialog {
+  height: unset !important;
+}
+.mdui-dialog-content {
+  height: fit-content !important;
+  max-height: 60vh;
+}

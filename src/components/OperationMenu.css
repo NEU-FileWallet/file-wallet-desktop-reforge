@@ -1,0 +1,25 @@
+.mdui-menu {
+  width: fit-content;
+}
+
+.mdui-menu-item {
+  height: 30px;
+  font-size: 13px;
+}
+
+.mdui-menu-item > a {
+  height: 30px;
+  line-height: 15px;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  padding-right: 10px;
+}
+
+.mdui-menu .mdui-icon {
+  font-size: 20px !important;
+}
+
+.mdui-menu-item-icon {
+  padding: 0 !important;
+}
