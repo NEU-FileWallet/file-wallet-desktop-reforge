@@ -1,5 +1,5 @@
 import { v4 } from "uuid";
-import { w3cwebsocket } from 'websocket'
+import { w3cwebsocket } from "websocket";
 import { FabricClient } from "./fabricDatabase";
 
 export enum OperationCodeEnum {
@@ -30,7 +30,7 @@ export default class FabricGatewayClient implements FabricClient {
     gatewayUrl: string,
     options: FabricClientOptions
   ): Promise<FabricGatewayClient> {
-    console.log(gatewayUrl)
+    console.log(gatewayUrl);
     const client = new FabricGatewayClient(gatewayUrl, options);
     await client.connect();
     return client;
@@ -38,22 +38,21 @@ export default class FabricGatewayClient implements FabricClient {
 
   private connect() {
     return new Promise((resolve, reject) => {
-      this.ws = new w3cwebsocket(this.url, 'echo-protocol');
+      this.ws = new w3cwebsocket(this.url, "echo-protocol");
       this.ws.onopen = async () => {
         await this.invoke(OperationCodeEnum.CONNECT, this.options);
         resolve(undefined);
-      }
-  
+      };
+
       this.ws.onerror = (error) => {
         reject(error);
-      }
+      };
 
       this.ws.onmessage = (data) => {
         const message = JSON.parse(data.data.toString() ?? "{}");
         const handler = this.listeners[message.txID];
         handler(message);
-      }
- 
+      };
     });
   }
 
@@ -71,20 +70,24 @@ export default class FabricGatewayClient implements FabricClient {
         await this.connect();
       }
       const id = v4();
-      this.ws?.send(
-        JSON.stringify({
-          txID: id,
-          code: operation,
-          data,
-        })
-      );
+      try {
+        this.ws?.send(
+          JSON.stringify({
+            txID: id,
+            code: operation,
+            data,
+          })
+        );
+      } catch (err) {
+        reject(err);
+      }
 
       this.listeners[id] = (response) => {
         delete this.listeners[id];
         if (response.error) {
-          reject(new Error(response.error))
+          reject(new Error(response.error));
         } else {
-          resolve(response.data)
+          resolve(response.data);
         }
       };
     });

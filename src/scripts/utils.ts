@@ -1,6 +1,9 @@
+import { ipcRenderer } from "electron";
 import { lstatSync } from "fs";
 import { Base64 } from "js-base64";
 import { parse } from "path";
+import { useEffect, useState } from "react";
+import { getDatabase } from "./filesystem";
 import icons from "./icon.json";
 
 export async function classifySelectionResult(
@@ -122,4 +125,56 @@ export function processResponse(response: string) {
     }
   }
   return undefined;
+}
+
+
+
+export function useNetworkState() {
+  const [state, setState] = useState<{ [key in string]: boolean }>({
+    IPFS: false,
+    FABRIC: false,
+  });
+  const pingIPFS = async () => {
+    // console.log("Pinging IPFS");
+    try {
+      const isIpfsAlive = await ipcRenderer.invoke("ping-ipfs");
+      setState((previous) => ({
+        ...previous,
+        IPFS: isIpfsAlive,
+      }));
+    } catch {
+      setState((previous) => ({
+        ...previous,
+        IPFS: false,
+      }));
+    }
+  };
+  const pingFabric = async () => {
+    // console.log("Pinging Fabric");
+    try {
+      const database = await getDatabase();
+      const isFabricAlive = await database.readUserProfile();
+      // console.log(`Is Fabric online: ${!!isFabricAlive}`);
+      setState((previous) => ({
+        ...previous,
+        FABRIC: !!isFabricAlive,
+      }));
+    } catch {
+      setState((previous) => ({
+        ...previous,
+        FABRIC: false,
+      }));
+    }
+  };
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      await Promise.all([pingIPFS(), pingFabric()]);
+    }, 5000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  });
+
+  return state;
 }
