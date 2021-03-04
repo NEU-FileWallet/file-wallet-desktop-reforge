@@ -77,4 +77,5 @@ export interface ChaincodeInterface {
     recursive: boolean
   ) => Promise<void>;
   subscribe: (key: string) => Promise<Directory>;
+  disconnect: () => void
 }

@@ -4,7 +4,4 @@ module.exports = {
       target: "electron-renderer",
     },
   },
-  jest: {
-    testMatch: [""]
-  }
 };

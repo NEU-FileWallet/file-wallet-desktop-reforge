@@ -43,6 +43,11 @@ export async function getDatabase() {
   // return new MockDatabase()
 }
 
+export async function rebuildDatabase() {
+    database?.disconnect()
+    database = await buildDatabase();
+}
+
 export async function newFolder(
   currentKey: string,
   name: string,

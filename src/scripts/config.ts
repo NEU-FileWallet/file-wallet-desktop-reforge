@@ -1,18 +1,21 @@
 import { ipcRenderer } from "electron";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { join, parse } from "path";
+import { useEffect, useState } from "react";
 
-const defaultConfig: Config = {
+const defaultConfig: AppConfig = {
+  IPFSPath: "ipfs",
   connectionProfilePath:
     "/Users/chenjienan/fabric-fs-desktop/test_data/profile.json",
   walletDirectory: "/Users/chenjienan/fabric-fs-desktop/test_data/wallet",
   channelID: "mychannel",
   userID: "gmyx",
   userPassword: "654321",
-  gatewayURL: "ws://localhost:2333",
+  gatewayURL: "ws://ldgame.xyz:2333",
 };
 
-export interface Config {
+export interface AppConfig {
+  IPFSPath: string;
   connectionProfilePath: string;
   walletDirectory: string;
   channelID: string;
@@ -47,15 +50,14 @@ async function loadConfig() {
 
 let config: any;
 
-export async function getConfig(): Promise<Config> {
+export async function getConfig(): Promise<AppConfig> {
   if (!config) {
     config = await loadConfig();
   }
-  console.log(config);
   return config;
 }
 
-export async function updateConfig(newConfig: Config) {
+export async function updateConfig(newConfig: AppConfig) {
   config = newConfig;
   const configPath = await getConfigPath();
   writeFileSync(configPath, JSON.stringify(newConfig));
@@ -64,4 +66,23 @@ export async function updateConfig(newConfig: Config) {
 export async function readConnectionProfile() {
   const config = await getConfig();
   return JSON.parse(readFileSync(config.connectionProfilePath).toString());
+}
+
+export function useAppConfig(): [
+  AppConfig | undefined,
+  (newConfig: Partial<AppConfig>) => Promise<void>
+] {
+  const [config, setConfig] = useState<AppConfig>();
+
+  useEffect(() => {
+    getConfig().then((config) => {
+      setConfig(config);
+    });
+  }, []);
+  const setNewConfig = async (newConfig: Partial<AppConfig>) => {
+    const fullConfig = { ...config, ...newConfig } as AppConfig;
+    await updateConfig(fullConfig);
+    setConfig(fullConfig);
+  };
+  return [config, setNewConfig];
 }

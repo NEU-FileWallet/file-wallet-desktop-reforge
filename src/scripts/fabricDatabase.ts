@@ -12,6 +12,7 @@ type actionType = (functionName: string, ...args: string[]) => Promise<any>;
 export interface FabricClient {
   submit: actionType;
   evaluate: actionType;
+  disconnect: () => void
 }
 
 export default class FabricDatabase implements ChaincodeInterface {
@@ -23,7 +24,12 @@ export default class FabricDatabase implements ChaincodeInterface {
   static async new(gatewayURL: string, options: FabricClientOptions) {
     const client = await FabricGatewayClient.new(gatewayURL, options);
     const database = new FabricDatabase(client);
+    console.log('new database')
     return database;
+  }
+
+  disconnect() {
+    this.client?.disconnect()
   }
 
   copyDirectory: (

@@ -14,11 +14,10 @@ import { Dialog } from "mdui/es/components/dialog/class";
 import AppDrawer, { AppDrawerItem } from "./components/AppDrawer";
 import AppLoading, { AppLoadingIns } from "./components/AppLoading";
 import { ipcRenderer } from "electron";
-import Setting from "./pages/Setting";
 import DownloadPage from "./pages/DownloadPage";
 import { UserProfile } from "./scripts/chaincodeInterface";
 import { getDatabase } from "./scripts/filesystem";
-import TitleBar from "./components/TitleBar";
+import ConfigPage from "./pages/ConfigPage";
 
 const drawerItems: AppDrawerItem[] = [
   {
@@ -102,7 +101,7 @@ function App() {
             {/* <TitleBar></TitleBar> */}
             <div style={{ display: "flex", flexDirection: "row" }}>
               <AppDrawer items={drawerItems} />
-              {userProfile && !isLoading && (
+              { !isLoading && (
                 <div
                   className="content"
                   style={{
@@ -112,13 +111,13 @@ function App() {
                 >
                   <Switch>
                     <Route path="/settings">
-                      <Setting />
+                      <ConfigPage />
                     </Route>
                     <Route path="/download">
                       <DownloadPage />
                     </Route>
                     <Route path="/">
-                      <PrivateFolder privateFolderKey={userProfile.private} />
+                      <PrivateFolder privateFolderKey={userProfile?.private} />
                     </Route>
                   </Switch>
                 </div>

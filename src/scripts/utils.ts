@@ -127,22 +127,19 @@ export function processResponse(response: string) {
   return undefined;
 }
 
-
-
 export function useNetworkState() {
   const [state, setState] = useState<{ [key in string]: boolean }>({
     IPFS: false,
     FABRIC: false,
   });
   const pingIPFS = async () => {
-    // console.log("Pinging IPFS");
     try {
       const isIpfsAlive = await ipcRenderer.invoke("ping-ipfs");
       setState((previous) => ({
         ...previous,
         IPFS: isIpfsAlive,
       }));
-    } catch {
+    } catch (error) {
       setState((previous) => ({
         ...previous,
         IPFS: false,
@@ -150,23 +147,24 @@ export function useNetworkState() {
     }
   };
   const pingFabric = async () => {
-    // console.log("Pinging Fabric");
     try {
       const database = await getDatabase();
       const isFabricAlive = await database.readUserProfile();
-      // console.log(`Is Fabric online: ${!!isFabricAlive}`);
+      console.log(isFabricAlive);
       setState((previous) => ({
         ...previous,
         FABRIC: !!isFabricAlive,
       }));
-    } catch {
+    } catch (error) {
       setState((previous) => ({
         ...previous,
         FABRIC: false,
       }));
     }
   };
+
   useEffect(() => {
+    Promise.all([pingIPFS(), pingFabric()]);
     const interval = setInterval(async () => {
       await Promise.all([pingIPFS(), pingFabric()]);
     }, 5000);
@@ -174,7 +172,7 @@ export function useNetworkState() {
     return () => {
       clearInterval(interval);
     };
-  });
+  }, []);
 
   return state;
 }

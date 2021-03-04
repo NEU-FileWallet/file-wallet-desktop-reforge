@@ -2,7 +2,6 @@ import React, { useCallback, useEffect } from "react";
 import { useImperativeHandle, useRef, useState } from "react";
 import { Rule } from "../scripts/rules";
 
-
 export type ValidationResult = {
   result: boolean;
   msg?: string;
@@ -26,13 +25,21 @@ export interface SuperInputProps
   rules?: Rule[];
   message?: string;
   autoFocus?: boolean;
+  defaultValue?: string
 }
 
 function SuperInput(props: SuperInputProps, ref: React.Ref<SuperInputIns>) {
-  const { title, onChange, rules = [], autoFocus, ...otherProps } = props;
+  const {
+    title,
+    onChange,
+    rules = [],
+    autoFocus,
+    defaultValue,
+    ...otherProps
+  } = props;
   const inputRef = useRef<HTMLInputElement>(null);
   const [errMsg, setErrMsg] = useState("");
-  const [value, setValue] = useState<string | undefined>("");
+  const [value, setValue] = useState<string | undefined>(defaultValue);
 
   const validate = useCallback(async () => {
     for (const rule of rules) {
@@ -40,8 +47,8 @@ function SuperInput(props: SuperInputProps, ref: React.Ref<SuperInputIns>) {
         const { result, msg } = await rule(inputRef.current?.value);
         if (!result) {
           setErrMsg(msg || "");
+          return false;
         }
-        return result;
       } catch (err) {
         setErrMsg(err.toString());
         return false;
@@ -74,7 +81,6 @@ function SuperInput(props: SuperInputProps, ref: React.Ref<SuperInputIns>) {
         setErrMsg(msg);
       },
       focus: () => {
-        console.log(233);
         inputRef.current?.focus();
       },
     }),

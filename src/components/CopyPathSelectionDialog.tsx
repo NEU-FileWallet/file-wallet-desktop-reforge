@@ -8,7 +8,6 @@ import { Tree } from "antd";
 import { DataNode } from "antd/lib/tree";
 import { FileItem } from "./FileBrowserList";
 import { BeatLoader } from "react-spinners";
-import AdvancedPreferenceCollapse from "./AdvancedPreferenceCollapse";
 
 function dir2Node(dir: Directory, key: string): DataNode {
   return {

@@ -1,7 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { ipcRenderer, remote } from "electron";
 import { existsSync } from "fs";
-import mdui from "mdui";
 import { join, parse } from "path";
 import React, { useCallback, useEffect, useState } from "react";
 import { v4 } from "uuid";

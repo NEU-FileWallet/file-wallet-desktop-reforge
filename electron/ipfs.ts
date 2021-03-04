@@ -145,6 +145,11 @@ ipcMain.handle("ping-ipfs", () => {
   return pingIPFS();
 });
 
+ipcMain.handle('stop-ipfs', () => {
+  const killed = ipfsProcess?.kill()
+  if (!killed) throw new Error('Can not kill ipfs process')
+})
+
 ipcMain.handle("get-file-size", async (event, cid: string) => {
   try {
     const stat = await client.object.stat(cid);

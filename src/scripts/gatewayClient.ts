@@ -20,6 +20,7 @@ export default class FabricGatewayClient implements FabricClient {
   listeners: { [txID in string]: (response: any) => any } = {};
   options?: FabricClientOptions;
   url: string;
+  autoReconnect = true;
 
   private constructor(url: string, options: FabricClientOptions) {
     this.url = url;
@@ -65,12 +66,15 @@ export default class FabricGatewayClient implements FabricClient {
   }
 
   private invoke(operation: OperationCodeEnum, data: any) {
-    return new Promise(async (resolve, reject) => {
-      if (!this.ws?.CLOSED) {
-        await this.connect();
+    return new Promise((resolve, reject) => {
+      if (!this.ws || this.ws.readyState !== this.ws.OPEN) {
+        reject("no connection");
+        return;
       }
-      const id = v4();
-      try {
+
+      const job = () => {
+        const id = v4();
+
         this.ws?.send(
           JSON.stringify({
             txID: id,
@@ -78,22 +82,34 @@ export default class FabricGatewayClient implements FabricClient {
             data,
           })
         );
-      } catch (err) {
-        reject(err);
+
+        this.listeners[id] = (response) => {
+          console.log(response);
+          delete this.listeners[id];
+          if (response.type === "error") {
+            reject(new Error(`fail to invoke`));
+          } else {
+            resolve(response.data);
+          }
+        };
+      };
+
+      if (this.ws?.readyState !== this.ws?.OPEN && this.autoReconnect) {
+        this.connect()
+          .then(() => {
+            job();
+          })
+          .catch((err) => reject(err));
       }
 
-      this.listeners[id] = (response) => {
-        delete this.listeners[id];
-        if (response.error) {
-          reject(new Error(response.error));
-        } else {
-          resolve(response.data);
-        }
-      };
+      job();
     });
   }
 
   disconnect() {
+    this.autoReconnect = false;
+    console.log("client close");
+    console.log(this.ws);
     this.ws?.close();
   }
 }
