@@ -31,7 +31,6 @@ export default class FabricGatewayClient implements FabricClient {
     gatewayUrl: string,
     options: FabricClientOptions
   ): Promise<FabricGatewayClient> {
-    console.log(gatewayUrl);
     const client = new FabricGatewayClient(gatewayUrl, options);
     await client.connect();
     return client;
@@ -84,7 +83,6 @@ export default class FabricGatewayClient implements FabricClient {
         );
 
         this.listeners[id] = (response) => {
-          console.log(response);
           delete this.listeners[id];
           if (response.type === "error") {
             reject(new Error(`fail to invoke`));

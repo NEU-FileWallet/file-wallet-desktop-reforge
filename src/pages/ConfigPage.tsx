@@ -1,13 +1,11 @@
-import { CSSProperties, useState } from "react";
+import { useState } from "react";
+import { useHistory } from "react-router-dom";
+import ConfigCard from "../components/ConfigCard";
+import { ConfigContainer } from "../components/ConfigContainer";
 import ConfigDialog from "../components/ConfigDialog";
 import { AppConfig, useAppConfig } from "../scripts/config";
 import { rebuildDatabase } from "../scripts/filesystem";
 import { notEmpty, Rule, websocketURL } from "../scripts/rules";
-
-const cardStyle: CSSProperties = {
-  backgroundColor: "#303030",
-  borderRadius: "5px",
-};
 
 interface ConfigSection {
   title: string;
@@ -24,6 +22,7 @@ interface ConfigItem {
 export interface SettingProps {}
 
 export default function ConfigPage(props: SettingProps) {
+  const history = useHistory();
   const [tempConfig, setConfig] = useAppConfig();
   const [configDialogVis, setConfigDialogVis] = useState(false);
   const [configDialogTitle, setConfigDialogTitle] = useState("");
@@ -43,6 +42,9 @@ export default function ConfigPage(props: SettingProps) {
           title: "Identity",
           subTitle: config.userID,
           icon: "person",
+          onClick: () => {
+            history.push("/setting/identity");
+          },
         },
       ],
     },
@@ -76,8 +78,8 @@ export default function ConfigPage(props: SettingProps) {
             setOnOK(() => {
               return (value: string) => {
                 setConfig({ gatewayURL: value });
-                setConfigDialogVis(false)
-                rebuildDatabase()
+                setConfigDialogVis(false);
+                rebuildDatabase();
               };
             });
           },
@@ -120,30 +122,23 @@ export default function ConfigPage(props: SettingProps) {
         defaultValue={defaultValue}
       ></ConfigDialog>
 
-      <div className="mdui-container-fluid mdui-typo">
-        <div
-          className="mdui-row"
-          style={{ justifyContent: "center", display: "flex" }}
-        >
-          <div className="mdui-col-xs-10 mdui-col-md-6 .mdui-col-lg-4">
-            {sections.map((section) => (
-              <div key={section.title}>
-                <h4>{section.title}</h4>
-                <div style={cardStyle} className="mdui-shadow-5">
-                  <ul className="mdui-list mdui-list-dense">
-                    {section.items.map((item, index) => (
-                      <div key={item.title}>
-                        {index !== 0 && <div className="mdui-divider"></div>}
-                        {configItem(item)}
-                      </div>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            ))}
+      <ConfigContainer>
+        {sections.map((section) => (
+          <div key={section.title}>
+            <h4>{section.title}</h4>
+            <ConfigCard>
+              <ul className="mdui-list mdui-list-dense">
+                {section.items.map((item, index) => (
+                  <div key={item.title}>
+                    {index !== 0 && <div className="mdui-divider"></div>}
+                    {configItem(item)}
+                  </div>
+                ))}
+              </ul>
+            </ConfigCard>
           </div>
-        </div>
-      </div>
+        ))}
+      </ConfigContainer>
     </>
   );
 }

@@ -1,9 +1,8 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import { clipboard } from "electron";
 import mdui from "mdui";
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { BeatLoader } from "react-spinners";
-import { UserProfileContext } from "../App";
 import {
   generateShareLinkForDir,
   generateShareLinkForFile,
@@ -11,6 +10,8 @@ import {
 import Dialog, { DialogIns, DialogProps } from "./Dialog";
 import { DirectoryItem, FileItem } from "./FileBrowserList";
 import "./ShareDialog.css";
+import { useSelector } from 'react-redux'
+import { AppState } from "../store/reducer";
 
 export interface ShareTarget {
   key?: string;
@@ -45,7 +46,7 @@ export default function ShareDialog(props: ShareDialogProps) {
   const [SubMsg, setSubMsg] = useState("");
   const [checked, setChecked] = useState(false);
   const [isChangingState, setIsChangingState] = useState(false);
-  const userProfile = useContext(UserProfileContext);
+  const userProfile = useSelector((state: AppState) => state.userProfile)
   const ref = useRef<DialogIns>(null);
 
   let isOwner = true;

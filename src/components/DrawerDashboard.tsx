@@ -1,8 +1,9 @@
-import { useNetworkState } from "../scripts/utils";
 import "./DrawerDashboard.scss";
+import { useSelector } from "react-redux";
+import { AppState } from "../store/reducer";
 
 export default function DrawerDashboard() {
-  const states = useNetworkState();
+  const states = useSelector((state: AppState) => state.network);
 
   return (
     <div
@@ -13,19 +14,24 @@ export default function DrawerDashboard() {
         flexDirection: "column",
       }}
     >
-      {Object.keys(states).map((name, index) => {
-        const networkState = states[name];
-        const color = networkState ? "green" : "red";
-
-        return (
-          <div key={name} style={{ marginTop: !!index ? 10 : 0 }}>
-            <div style={{ backgroundColor: color }} className="circle"></div>
-            <span style={{ marginLeft: 10 }}>
-              {name} {networkState ? "is ready" : "is not ready"}
-            </span>
-          </div>
-        );
-      })}
+      <div>
+        <div
+          style={{ backgroundColor: states.IPFS ? "green" : "red" }}
+          className="circle"
+        ></div>
+        <span style={{ marginLeft: 10 }}>
+          IPFS {states.IPFS ? "is ready" : "is not ready"}
+        </span>
+      </div>
+      <div style={{ marginTop: 10 }}>
+        <div
+          style={{ backgroundColor: states.FABRIC ? "green" : "red" }}
+          className="circle"
+        ></div>
+        <span style={{ marginLeft: 10 }}>
+          FABRIC {states.FABRIC ? "is ready" : "is not ready"}
+        </span>
+      </div>
     </div>
   );
 }

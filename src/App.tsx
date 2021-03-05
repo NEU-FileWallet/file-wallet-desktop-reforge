@@ -15,9 +15,13 @@ import AppDrawer, { AppDrawerItem } from "./components/AppDrawer";
 import AppLoading, { AppLoadingIns } from "./components/AppLoading";
 import { ipcRenderer } from "electron";
 import DownloadPage from "./pages/DownloadPage";
-import { UserProfile } from "./scripts/chaincodeInterface";
 import { getDatabase } from "./scripts/filesystem";
 import ConfigPage from "./pages/ConfigPage";
+import IdentityManagementPage from "./pages/IdentityManagementPage";
+import store from "./store/store";
+import { monitorNetworkState } from "./scripts/utils";
+import { useSelector } from "react-redux";
+import { AppState } from "./store/reducer";
 
 const drawerItems: AppDrawerItem[] = [
   {
@@ -37,17 +41,13 @@ const drawerItems: AppDrawerItem[] = [
   },
 ];
 
-export const UserProfileContext = React.createContext<UserProfile | undefined>(
-  undefined
-);
-
 function App() {
   const [loadingContent] = useState<string>("Initializing");
   const [error, setError] = useState<{ title: string; detail: string }>();
   const [errorDialog, setErrorDialog] = useState<Dialog>();
   const ref = useRef<AppLoadingIns>(null);
-  const [userProfile, setUserProfile] = useState<UserProfile>();
   const [isLoading, setIsLoading] = useState(true);
+
   const initiateIPFS = async () => {
     ref.current?.show();
     const result = await ipcRenderer.invoke("ping-ipfs");
@@ -83,17 +83,17 @@ function App() {
   const initiateFabric = async () => {
     const database = await getDatabase();
     const profile = await database.readUserProfile();
-    console.log(profile);
-    setUserProfile(profile);
+    store.dispatch({ type: "updateUserProfile", payload: profile });
   };
 
   useEffect(() => {
-    initiateIPFS();
-    initiateFabric();
+    Promise.all([initiateIPFS(), initiateFabric()]).finally(() => {
+      monitorNetworkState();
+    });
   }, []);
 
   return (
-    <UserProfileContext.Provider value={userProfile}>
+    
       <div className="app">
         <AppLoading ref={ref} content={loadingContent} />
         <BrowserRouter>
@@ -101,15 +101,18 @@ function App() {
             {/* <TitleBar></TitleBar> */}
             <div style={{ display: "flex", flexDirection: "row" }}>
               <AppDrawer items={drawerItems} />
-              { !isLoading && (
+              {!isLoading && (
                 <div
                   className="content"
                   style={{
                     width: "calc(100vw - 200px)",
-                    height: "calc(100vh)"
+                    height: "calc(100vh)",
                   }}
                 >
                   <Switch>
+                    <Route path="/setting/identity">
+                      <IdentityManagementPage />
+                    </Route>
                     <Route path="/settings">
                       <ConfigPage />
                     </Route>
@@ -117,7 +120,7 @@ function App() {
                       <DownloadPage />
                     </Route>
                     <Route path="/">
-                      <PrivateFolder privateFolderKey={userProfile?.private} />
+                      <PrivateFolder />
                     </Route>
                   </Switch>
                 </div>
@@ -131,7 +134,6 @@ function App() {
           {...error}
         />
       </div>
-    </UserProfileContext.Provider>
   );
 }
 

@@ -1,13 +1,12 @@
 import { FileBrowser } from "../components/FileBrowser";
 import { getDatabase, importFromFS, newFolder } from "../scripts/filesystem";
 import { ItemMeta } from "../scripts/utils";
-
-export interface PrivateFolderProps {
-  privateFolderKey?: string;
-}
+import { useSelector } from "react-redux";
+import { AppState } from "../store/reducer";
+export interface PrivateFolderProps {}
 
 export default function PrivateFolder(props: PrivateFolderProps) {
-  const { privateFolderKey } = props;
+  const userProfile = useSelector((state: AppState) => state.userProfile);
 
   const handleImportFile = async (key: string) => {
     try {
@@ -41,7 +40,7 @@ export default function PrivateFolder(props: PrivateFolderProps) {
   return (
     <>
       <FileBrowser
-        rootKey={privateFolderKey}
+        rootKey={userProfile?.private}
         importFile={handleImportFile}
         newFolder={newFolder}
         importFromLink={handleImportFromLink}

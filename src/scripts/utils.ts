@@ -3,6 +3,7 @@ import { lstatSync } from "fs";
 import { Base64 } from "js-base64";
 import { parse } from "path";
 import { useEffect, useState } from "react";
+import store from "../store/store";
 import { getDatabase } from "./filesystem";
 import icons from "./icon.json";
 
@@ -127,52 +128,37 @@ export function processResponse(response: string) {
   return undefined;
 }
 
-export function useNetworkState() {
-  const [state, setState] = useState<{ [key in string]: boolean }>({
-    IPFS: false,
-    FABRIC: false,
-  });
+export function monitorNetworkState() {
+  const updateState = (state: any) => {
+    store.dispatch({ type: 'updateNetwork', payload: state })
+  }
   const pingIPFS = async () => {
     try {
       const isIpfsAlive = await ipcRenderer.invoke("ping-ipfs");
-      setState((previous) => ({
-        ...previous,
+      updateState({
         IPFS: isIpfsAlive,
-      }));
+      })
     } catch (error) {
-      setState((previous) => ({
-        ...previous,
+      updateState({
         IPFS: false,
-      }));
+      })
     }
   };
   const pingFabric = async () => {
     try {
       const database = await getDatabase();
       const isFabricAlive = await database.readUserProfile();
-      console.log(isFabricAlive);
-      setState((previous) => ({
-        ...previous,
+      updateState({
         FABRIC: !!isFabricAlive,
-      }));
+      })
     } catch (error) {
-      setState((previous) => ({
-        ...previous,
+      updateState({
         FABRIC: false,
-      }));
+      })
     }
   };
 
-  useEffect(() => {
-    Promise.all([pingIPFS(), pingFabric()]);
-    const interval = setInterval(async () => {
-      await Promise.all([pingIPFS(), pingFabric()]);
-    }, 5000);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
-
-  return state;
+  setInterval(async () => {
+    await Promise.all([pingIPFS(), pingFabric()]);
+  }, 5000);
 }

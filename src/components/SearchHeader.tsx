@@ -2,7 +2,6 @@ import React, { CSSProperties } from "react";
 import Header from "./Header";
 
 const textFieldStyle: CSSProperties = {
-  paddingBottom: 0,
   paddingTop: 5,
   width: "40%",
   maxWidth: "400px",
@@ -14,6 +13,7 @@ const containerStyle: CSSProperties = {
   justifyContent: "space-between",
   marginLeft: 12,
   minHeight: 48,
+  width: "100%",
 };
 
 const iconStyle: CSSProperties = {
@@ -28,7 +28,7 @@ const inputStyle: CSSProperties = {
 export interface SearchHeaderProps {
   onChange?: (text: string) => void;
   placeholder?: string;
-  suffix?: React.ReactNode
+  suffix?: React.ReactNode;
 }
 
 export default function SearchHeader(props: SearchHeaderProps) {
@@ -42,6 +42,7 @@ export default function SearchHeader(props: SearchHeaderProps) {
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
+            paddingTop: 15,
           }}
         >
           <div style={textFieldStyle} className="mdui-textfield">
@@ -53,9 +54,9 @@ export default function SearchHeader(props: SearchHeaderProps) {
               className="mdui-textfield-input"
               placeholder={placeholder}
               onChange={(event) => {
-                  if (onChange) {
-                    onChange(event.target.value)
-                  }
+                if (onChange) {
+                  onChange(event.target.value);
+                }
               }}
             ></input>
           </div>

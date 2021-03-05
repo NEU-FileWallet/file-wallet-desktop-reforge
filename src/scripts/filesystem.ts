@@ -46,6 +46,7 @@ export async function getDatabase() {
 export async function rebuildDatabase() {
     database?.disconnect()
     database = await buildDatabase();
+    return database
 }
 
 export async function newFolder(
