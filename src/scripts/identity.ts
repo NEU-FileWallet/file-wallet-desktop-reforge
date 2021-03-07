@@ -10,9 +10,8 @@ import { useCallback, useEffect, useState } from "react";
 import { getConfig } from "./config";
 import FabricDatabase from "./fabricDatabase";
 
-export async function testIdentity(identity: any) {
+export async function testIdentity(username: string, identity: any) {
   const {
-    userID,
     channelID,
     connectionProfilePath,
     gatewayURL,
@@ -21,19 +20,25 @@ export async function testIdentity(identity: any) {
   const options = {
     channelID,
     ccp,
-    username: userID,
+    username,
     identity,
   };
 
   let result = false;
-  const database = await FabricDatabase.new(gatewayURL, options);
   try {
-    const profile = await database.readUserProfile();
-    result = !!profile;
-  } catch {
-    result = false;
-  } finally {
-    database.disconnect();
+    const database = await FabricDatabase.new(gatewayURL, options);
+    try {
+      const profile = await database.readUserProfile();
+      console.log(profile);
+      result = !!profile;
+    } catch (err) {
+      console.log(err);
+      result = false;
+    } finally {
+      database.disconnect();
+    }
+  } catch (err) {
+    console.log(err);
   }
 
   return result;
@@ -41,9 +46,9 @@ export async function testIdentity(identity: any) {
 
 export async function addIdentity(label: string, identity: any) {
   const { walletDirectory } = await getConfig();
-  console.log(walletDirectory)
+  console.log(walletDirectory);
   writeFileSync(join(walletDirectory, `${label}.id`), JSON.stringify(identity));
-  console.log('wrote file')
+  console.log("wrote file");
 }
 
 export async function removeIdentity(label: string) {

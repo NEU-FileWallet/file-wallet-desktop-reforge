@@ -34,7 +34,7 @@ export default function NewIdentityDialog(props: NewIdentityDialogProps) {
     if (selectedFile && isLabelValid) {
       try {
         const identity = JSON.parse(readFileSync(selectedFile).toString());
-        const result = await testIdentity(identity);
+        const result = await testIdentity(label!!, identity);
         if (result) {
           await addIdentity(label!!, identity);
           if (onAddIdentity) {
@@ -42,10 +42,10 @@ export default function NewIdentityDialog(props: NewIdentityDialogProps) {
           }
           dialogRef.current?.close();
         } else {
-          mdui.snackbar("Can not add identity");
+          mdui.snackbar("Can not add identity", { buttonText: "close" });
         }
       } catch {
-        mdui.snackbar("Can not read identity file");
+        mdui.snackbar("Can not read identity file", { buttonText: "close" });
       }
     }
 
