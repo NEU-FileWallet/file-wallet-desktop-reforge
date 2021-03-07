@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { BeatLoader } from "react-spinners";
 import { Directory } from "../scripts/chaincodeInterface";
-import { getDatabase } from "../scripts/filesystem";
+import { getDatabase } from "../scripts/fabricDatabase";
 import { decodeShareLink, ItemMeta } from "../scripts/utils";
 import Dialog, { DialogIns, DialogProps } from "./Dialog";
 

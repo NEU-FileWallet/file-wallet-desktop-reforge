@@ -4,7 +4,7 @@ import { existsSync, mkdirSync } from "fs";
 import { useEffect, useState } from "react";
 import { v4 } from "uuid";
 import { Directory } from "./chaincodeInterface";
-import { getDatabase } from "./filesystem";
+import { getDatabase } from "./fabricDatabase";
 
 let downloadFolderPath: string;
 

@@ -9,7 +9,6 @@ import {
   downloadFile,
   downloadFolder,
 } from "../scripts/download";
-import { getDatabase } from "../scripts/filesystem";
 import { ItemMeta } from "../scripts/utils";
 import FileBrowserBreadcrumb from "./FileBrowserBreadcrumb";
 import FileBrowserHeader from "./FileBrowserHeader";
@@ -26,6 +25,7 @@ import CopyPathSelectionDialog from "./CopyPathSelectionDialog";
 import ShareDialog, { ShareTarget } from "./ShareDialog";
 import RenameDialog from "./RenameDialog";
 import LoadingDialog from "./LoadingDialog";
+import { getDatabase } from "../scripts/fabricDatabase";
 
 export type BrowserMode = "personal" | "share" | "subscriptions";
 interface ModeFunction {

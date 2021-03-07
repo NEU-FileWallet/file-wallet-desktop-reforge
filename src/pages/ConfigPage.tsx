@@ -4,7 +4,7 @@ import ConfigCard from "../components/ConfigCard";
 import { ConfigContainer } from "../components/ConfigContainer";
 import ConfigDialog from "../components/ConfigDialog";
 import { AppConfig, useAppConfig } from "../scripts/config";
-import { rebuildDatabase } from "../scripts/filesystem";
+import { rebuildDatabase } from "../scripts/fabricDatabase";
 import { notEmpty, Rule, websocketURL } from "../scripts/rules";
 
 interface ConfigSection {

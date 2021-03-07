@@ -15,13 +15,13 @@ import AppDrawer, { AppDrawerItem } from "./components/AppDrawer";
 import AppLoading, { AppLoadingIns } from "./components/AppLoading";
 import { ipcRenderer } from "electron";
 import DownloadPage from "./pages/DownloadPage";
-import { getDatabase } from "./scripts/filesystem";
 import ConfigPage from "./pages/ConfigPage";
 import IdentityManagementPage from "./pages/IdentityManagementPage";
 import store from "./store/store";
 import { monitorNetworkState } from "./scripts/utils";
 import { useSelector } from "react-redux";
 import { AppState } from "./store/reducer";
+import { getDatabase } from "./scripts/fabricDatabase";
 
 const drawerItems: AppDrawerItem[] = [
   {

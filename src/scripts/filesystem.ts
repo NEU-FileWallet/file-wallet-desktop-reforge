@@ -1,65 +1,24 @@
 import { readdirSync, readFileSync } from "fs";
 import { basename } from "path";
 import { classifyFilesAndFolders, classifySelectionResult } from "./utils";
-import { ChaincodeInterface, FileMeta } from "./chaincodeInterface";
 import { join } from "path";
 import { ipcRenderer, remote } from "electron";
-// import { MockDatabase } from "./mockDatabase";
-import { getConfig } from "./config";
-import FabricDatabase from "./fabricDatabase";
-
-let database: ChaincodeInterface;
-
-async function buildDatabase() {
-  const {
-    walletDirectory,
-    userID,
-    channelID,
-    connectionProfilePath,
-    gatewayURL,
-  } = await getConfig();
-
-  const ccp = JSON.parse(readFileSync(connectionProfilePath).toString());
-  const identity = JSON.parse(
-    readFileSync(join(walletDirectory, `${userID}.id`)).toString()
-  );
-  const options = {
-    channelID,
-    ccp,
-    username: userID,
-    identity,
-  };
-  return await FabricDatabase.new(gatewayURL, options);
-}
-
-export async function getDatabase() {
-  if (!database) {
-    console.debug("connecting fabric");
-    database = await buildDatabase();
-    console.debug("fabric connected");
-  }
-  console.debug("retuning fabric");
-  return database;
-  // return new MockDatabase()
-}
-
-export async function rebuildDatabase() {
-    database?.disconnect()
-    database = await buildDatabase();
-    return database
-}
+import { getDatabase } from "./fabricDatabase";
+import { FileMeta } from "./chaincodeInterface";
 
 export async function newFolder(
   currentKey: string,
   name: string,
   visibility = "Private"
 ) {
+  const database = await getDatabase();
   const key = await database.createDirectory(name, visibility);
   await database.addDirectories(currentKey, [key]);
   return key;
 }
 
 export async function importFiles(parentKey: string, files: string[]) {
+  const database = await getDatabase();
   if (!files.length) return;
 
   const results: FileMeta[] = await ipcRenderer.invoke("add-file", files);
@@ -96,4 +55,20 @@ export const importFromFS = async (key: string) => {
   const { folders, files } = await classifySelectionResult(result);
   console.log(folders, files);
   await Promise.all([importFiles(key, files), importFolders(key, folders)]);
+};
+
+export const selectIdentityFile = async () => {
+  const result = await remote.dialog.showOpenDialog(remote.getCurrentWindow(), {
+    properties: ["openFile"],
+    message: "Select identity file",
+  });
+  const path = result.filePaths[0];
+  if (!path) return path;
+  try {
+    JSON.parse(readFileSync(path).toString());
+  } catch {
+    throw new Error("invalid identity file");
+  }
+
+  return path;
 };

@@ -2,9 +2,8 @@ import { ipcRenderer } from "electron";
 import { lstatSync } from "fs";
 import { Base64 } from "js-base64";
 import { parse } from "path";
-import { useEffect, useState } from "react";
 import store from "../store/store";
-import { getDatabase } from "./filesystem";
+import { getDatabase } from "./fabricDatabase";
 import icons from "./icon.json";
 
 export async function classifySelectionResult(
@@ -148,6 +147,7 @@ export function monitorNetworkState() {
     try {
       const database = await getDatabase();
       const isFabricAlive = await database.readUserProfile();
+      console.log(!!isFabricAlive)
       updateState({
         FABRIC: !!isFabricAlive,
       })
@@ -162,3 +162,4 @@ export function monitorNetworkState() {
     await Promise.all([pingIPFS(), pingFabric()]);
   }, 5000);
 }
+

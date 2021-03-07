@@ -1,6 +1,55 @@
-import { lstatSync, readdirSync, readFileSync } from "fs";
+import {
+  lstatSync,
+  readdirSync,
+  readFileSync,
+  unlinkSync,
+  writeFileSync,
+} from "fs";
 import { join, parse } from "path";
 import { useCallback, useEffect, useState } from "react";
+import { getConfig } from "./config";
+import FabricDatabase from "./fabricDatabase";
+
+export async function testIdentity(identity: any) {
+  const {
+    userID,
+    channelID,
+    connectionProfilePath,
+    gatewayURL,
+  } = await getConfig();
+  const ccp = JSON.parse(readFileSync(connectionProfilePath).toString());
+  const options = {
+    channelID,
+    ccp,
+    username: userID,
+    identity,
+  };
+
+  let result = false;
+  const database = await FabricDatabase.new(gatewayURL, options);
+  try {
+    const profile = await database.readUserProfile();
+    result = !!profile;
+  } catch {
+    result = false;
+  } finally {
+    database.disconnect();
+  }
+
+  return result;
+}
+
+export async function addIdentity(label: string, identity: any) {
+  const { walletDirectory } = await getConfig();
+  console.log(walletDirectory)
+  writeFileSync(join(walletDirectory, `${label}.id`), JSON.stringify(identity));
+  console.log('wrote file')
+}
+
+export async function removeIdentity(label: string) {
+  const { walletDirectory } = await getConfig();
+  unlinkSync(join(walletDirectory, `${label}.id`));
+}
 
 interface X509Identity {
   credentials: {

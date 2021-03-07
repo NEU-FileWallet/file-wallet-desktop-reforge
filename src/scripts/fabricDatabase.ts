@@ -1,18 +1,61 @@
+import { readFileSync } from "original-fs";
+import { join } from "path";
 import {
   ChaincodeInterface,
   Directory,
   FileMeta,
   UserProfile,
 } from "./chaincodeInterface";
+import { getConfig } from "./config";
 import FabricGatewayClient, { FabricClientOptions } from "./gatewayClient";
 import { processResponse } from "./utils";
 
 type actionType = (functionName: string, ...args: string[]) => Promise<any>;
 
+let database: ChaincodeInterface;
+
+async function buildDatabase() {
+  const {
+    walletDirectory,
+    userID,
+    channelID,
+    connectionProfilePath,
+    gatewayURL,
+  } = await getConfig();
+
+  const ccp = JSON.parse(readFileSync(connectionProfilePath).toString());
+  const identity = JSON.parse(
+    readFileSync(join(walletDirectory, `${userID}.id`)).toString()
+  );
+  const options = {
+    channelID,
+    ccp,
+    username: userID,
+    identity,
+  };
+  return await FabricDatabase.new(gatewayURL, options);
+}
+
+export async function getDatabase() {
+  if (!database) {
+    console.debug("connecting fabric");
+    database = await buildDatabase();
+    console.debug("fabric connected");
+  }
+  console.debug("retuning fabric");
+  return database;
+}
+
+export async function rebuildDatabase() {
+  database?.disconnect();
+  database = await buildDatabase();
+  return database;
+}
+
 export interface FabricClient {
   submit: actionType;
   evaluate: actionType;
-  disconnect: () => void
+  disconnect: () => void;
 }
 
 export default class FabricDatabase implements ChaincodeInterface {
@@ -24,12 +67,12 @@ export default class FabricDatabase implements ChaincodeInterface {
   static async new(gatewayURL: string, options: FabricClientOptions) {
     const client = await FabricGatewayClient.new(gatewayURL, options);
     const database = new FabricDatabase(client);
-    console.log('new database')
+    console.log("new database");
     return database;
   }
 
   disconnect() {
-    this.client?.disconnect()
+    this.client?.disconnect();
   }
 
   copyDirectory: (

@@ -82,8 +82,13 @@ export default class FabricGatewayClient implements FabricClient {
           })
         );
 
+        const timeout = setTimeout(() => {
+          delete this.listeners[id];
+        }, 10000);
+
         this.listeners[id] = (response) => {
           delete this.listeners[id];
+          clearTimeout(timeout);
           if (response.type === "error") {
             reject(new Error(`fail to invoke`));
           } else {

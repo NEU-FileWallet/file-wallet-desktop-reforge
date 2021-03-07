@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { BeatLoader } from "react-spinners";
 import { folderNameRules } from "../scripts/rules";
 import Dialog, { DialogIns, DialogProps } from "./Dialog";
+import LoadingButton from "./LoadingButton";
 import { CreationMode } from "./PrivilegeSelect";
 import SuperInput, { SuperInputIns } from "./SuperInput";
 
@@ -103,13 +104,7 @@ export default function NewFolderDialog(props: NewFolderDialogProps) {
         >
           Cancel
         </button>
-        <button className="mdui-btn" onClick={handleOk}>
-          {loading ? (
-            <BeatLoader size="8px" color="white" loading={loading}></BeatLoader>
-          ) : (
-            "Ok"
-          )}
-        </button>
+        <LoadingButton onClick={handleOk} loading={loading}></LoadingButton>
       </div>
     </Dialog>
   );

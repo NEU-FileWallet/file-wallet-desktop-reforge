@@ -1,13 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 
 import { Directory } from "../scripts/chaincodeInterface";
-import { getDatabase } from "../scripts/filesystem";
 import Dialog, { DialogIns, DialogProps } from "./Dialog";
 import { ItemDetail } from "./ItemDetailDialog";
 import { Tree } from "antd";
 import { DataNode } from "antd/lib/tree";
 import { FileItem } from "./FileBrowserList";
 import { BeatLoader } from "react-spinners";
+import { getDatabase } from "../scripts/fabricDatabase";
 
 function dir2Node(dir: Directory, key: string): DataNode {
   return {

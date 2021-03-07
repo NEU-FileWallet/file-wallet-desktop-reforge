@@ -14,10 +14,11 @@ export interface DialogProps {
   onClose?: () => void;
   style?: CSSProperties;
   persistent?: boolean
+  title?: string
 }
 
 function Dialog(props: DialogProps, ref: React.Ref<DialogIns>) {
-  const { children, visible, onClose, style, persistent = false } = props;
+  const { children, visible, onClose, style, title,persistent = false } = props;
   const [id] = useState(v4());
   const [dialog, setDialog] = useState<any>();
   useImperativeHandle(
@@ -69,6 +70,7 @@ function Dialog(props: DialogProps, ref: React.Ref<DialogIns>) {
 
   return (
     <div className="mdui-dialog" id={id} style={style}>
+      { title && <div className="mdui-dialog-title">{title}</div> }
       { visible && children}
     </div>
   );

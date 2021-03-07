@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from "react";
-import { getDatabase } from "../scripts/filesystem";
+import { getDatabase } from "../scripts/fabricDatabase";
 import Dialog, { DialogIns, DialogProps } from "./Dialog";
 import DirectoryDetail from "./DirectoryDetail";
 import { DirectoryItem, FileItem } from "./FileBrowserList";

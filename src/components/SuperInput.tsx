@@ -34,7 +34,7 @@ function SuperInput(props: SuperInputProps, ref: React.Ref<SuperInputIns>) {
     onChange,
     rules = [],
     autoFocus,
-    defaultValue,
+    defaultValue = "",
     ...otherProps
   } = props;
   const inputRef = useRef<HTMLInputElement>(null);
