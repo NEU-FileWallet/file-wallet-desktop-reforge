@@ -52,6 +52,8 @@ function createWindow() {
   if (isDev) {
     win.webContents.openDevTools();
   }
+
+  win.setMenuBarVisibility(false)
 }
 
 app.on("ready", createWindow);
