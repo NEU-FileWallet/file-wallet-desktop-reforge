@@ -1,8 +1,10 @@
+import { execSync } from "child_process";
 import { ipcRenderer } from "electron";
-import { lstatSync } from "fs";
+import { existsSync, lstatSync } from "fs";
 import { Base64 } from "js-base64";
-import { parse } from "path";
+import { join, parse } from "path";
 import store from "../store/store";
+import { AppConfig, getConfig } from "./config";
 import { getDatabase } from "./fabricDatabase";
 import icons from "./icon.json";
 
@@ -163,3 +165,32 @@ export function monitorNetworkState() {
   }, 5000);
 }
 
+export async function boostrapCheck(config?: AppConfig) {
+  if (!config) {
+    config = await getConfig()
+  }
+
+  const result = {
+    profile: false,
+    identity: false,
+    IPFS: false
+  }
+
+  const { walletDirectory, connectionProfilePath, userID, IPFSPath } = config
+
+  try {
+    try {
+      execSync(`${IPFSPath} version`)
+      result.IPFS = true
+    } catch(e) {
+      console.log(e)
+    }
+  
+    result.profile =  existsSync(connectionProfilePath)
+    result.identity = existsSync(join(walletDirectory, `${userID}.id`))
+  } catch(e) {
+    console.log(e)
+  }
+ 
+  return result
+}

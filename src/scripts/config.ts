@@ -3,14 +3,14 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { join, parse } from "path";
 import { useEffect, useState } from "react";
 
-const defaultConfig: AppConfig = {
+const defaultConfig: Partial<AppConfig> = {
   IPFSPath: "ipfs",
-  connectionProfilePath:
-    "/Users/chenjienan/fabric-fs-desktop/test_data/profile.json",
-  walletDirectory: "/Users/chenjienan/fabric-fs-desktop/test_data/wallet",
+  // connectionProfilePath:
+  //   "/Users/chenjienan/fabric-fs-desktop/test_data/profile.json",
+  // walletDirectory: "/Users/chenjienan/fabric-fs-desktop/test_data/wallet",
   channelID: "mychannel",
-  userID: "gmyx",
-  userPassword: "654321",
+  // userID: "gmyx",
+  // userPassword: "654321",
   gatewayURL: "ws://ldgame.xyz:2333",
 };
 
@@ -20,7 +20,6 @@ export interface AppConfig {
   walletDirectory: string;
   channelID: string;
   userID: string;
-  userPassword: string;
   gatewayURL: string;
 }
 
@@ -34,8 +33,7 @@ async function getConfigPath() {
   return join(userDataPath, "config.json");
 }
 
-async function loadConfig() {
-  const configPath = await getConfigPath();
+async function loadConfig(configPath: string) {
   console.log(configPath);
   if (!existsSync(configPath)) {
     const { dir } = parse(configPath);
@@ -52,7 +50,8 @@ let config: any;
 
 export async function getConfig(): Promise<AppConfig> {
   if (!config) {
-    config = await loadConfig();
+    const configPath = await getConfigPath();
+    config = await loadConfig(configPath);
   }
   return config;
 }

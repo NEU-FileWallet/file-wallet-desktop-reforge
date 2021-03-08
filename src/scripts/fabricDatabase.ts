@@ -6,7 +6,7 @@ import {
   FileMeta,
   UserProfile,
 } from "./chaincodeInterface";
-import { getConfig } from "./config";
+import { getConfig, readConnectionProfile } from "./config";
 import FabricGatewayClient, { FabricClientOptions } from "./gatewayClient";
 import { processResponse } from "./utils";
 
@@ -19,11 +19,10 @@ async function buildDatabase() {
     walletDirectory,
     userID,
     channelID,
-    connectionProfilePath,
     gatewayURL,
   } = await getConfig();
 
-  const ccp = JSON.parse(readFileSync(connectionProfilePath).toString());
+  const ccp = await readConnectionProfile();
   const identity = JSON.parse(
     readFileSync(join(walletDirectory, `${userID}.id`)).toString()
   );

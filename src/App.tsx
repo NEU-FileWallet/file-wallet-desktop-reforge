@@ -70,7 +70,7 @@ function App() {
       } else {
         mdui.dialog({
           title: `Can not determine the path of IPFS binary.`,
-          content: "Please specify the path of IPFS binary in settings",
+          content: "Please specify the path of IPFS binary in config",
         });
       }
     }
@@ -78,7 +78,7 @@ function App() {
     setIsLoading(false);
   };
 
-  const initiateFabric = async () => {
+  const initiateFabric = async () => { 
     const database = await getDatabase();
     const profile = await database.readUserProfile();
     store.dispatch({ type: "updateUserProfile", payload: profile });
@@ -91,12 +91,10 @@ function App() {
   }, []);
 
   return (
-    
       <div className="app">
         <AppLoading ref={ref} content={loadingContent} />
         <BrowserRouter>
           <div style={{ display: "flex", flexDirection: "column" }}>
-            {/* <TitleBar></TitleBar> */}
             <div style={{ display: "flex", flexDirection: "row" }}>
               <AppDrawer items={drawerItems} />
               {!isLoading && (
