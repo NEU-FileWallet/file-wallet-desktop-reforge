@@ -18,8 +18,9 @@ import DownloadPage from "./pages/DownloadPage";
 import ConfigPage from "./pages/ConfigPage";
 import IdentityManagementPage from "./pages/IdentityManagementPage";
 import store from "./store/store";
-import { monitorNetworkState } from "./scripts/utils";
+import { boostrapCheck, monitorNetworkState } from "./scripts/utils";
 import { getDatabase } from "./scripts/fabricDatabase";
+import BootstrapPage from "./pages/BootstrapPage";
 
 const drawerItems: AppDrawerItem[] = [
   {
@@ -45,6 +46,7 @@ function App() {
   const [errorDialog, setErrorDialog] = useState<Dialog>();
   const ref = useRef<AppLoadingIns>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showBoostrapPage, setShowBoostrapPage] = useState(false)
 
   const initiateIPFS = async () => {
     ref.current?.show();
@@ -74,62 +76,74 @@ function App() {
         });
       }
     }
-    ref.current?.dismiss();
-    setIsLoading(false);
   };
 
-  const initiateFabric = async () => { 
+  const initiateFabric = async () => {
     const database = await getDatabase();
     const profile = await database.readUserProfile();
     store.dispatch({ type: "updateUserProfile", payload: profile });
   };
 
+  const bootstrap = async () => {
+    const { profile, identity, IPFS } = await boostrapCheck()
+
+    if (!profile || !identity || !IPFS) {
+      setShowBoostrapPage(true)
+    } else {
+      await Promise.all([initiateIPFS(), initiateFabric()]).finally(() => {
+        monitorNetworkState();
+      });
+      ref.current?.dismiss();
+      setIsLoading(false);
+    }
+  }
+
   useEffect(() => {
-    Promise.all([initiateIPFS(), initiateFabric()]).finally(() => {
-      monitorNetworkState();
-    });
+    bootstrap()
   }, []);
 
   return (
-      <div className="app">
-        <AppLoading ref={ref} content={loadingContent} />
-        <BrowserRouter>
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <div style={{ display: "flex", flexDirection: "row" }}>
+    <div className="app">
+      { showBoostrapPage && <BootstrapPage/> }
+      <AppLoading ref={ref} content={loadingContent} />
+      <BrowserRouter>
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <div style={{ display: "flex", flexDirection: "row" }}>
+            {!isLoading && (<>
               <AppDrawer items={drawerItems} />
-              {!isLoading && (
-                <div
-                  className="content"
-                  style={{
-                    width: "calc(100vw - 200px)",
-                    height: "calc(100vh)",
-                  }}
-                >
-                  <Switch>
-                    <Route path="/setting/identity">
-                      <IdentityManagementPage />
-                    </Route>
-                    <Route path="/settings">
-                      <ConfigPage />
-                    </Route>
-                    <Route path="/download">
-                      <DownloadPage />
-                    </Route>
-                    <Route path="/">
-                      <PrivateFolder />
-                    </Route>
-                  </Switch>
-                </div>
-              )}
-            </div>
+              <div
+                className="content"
+                style={{
+                  width: "calc(100vw - 200px)",
+                  height: "calc(100vh)",
+                }}
+              >
+                <Switch>
+                  <Route path="/setting/identity">
+                    <IdentityManagementPage />
+                  </Route>
+                  <Route path="/settings">
+                    <ConfigPage />
+                  </Route>
+                  <Route path="/download">
+                    <DownloadPage />
+                  </Route>
+                  <Route path="/">
+                    <PrivateFolder />
+                  </Route>
+                </Switch>
+              </div>
+            </>
+            )}
           </div>
-        </BrowserRouter>
-        <ErrorDialog
-          onOk={() => errorDialog?.close()}
-          id="error-dialog"
-          {...error}
-        />
-      </div>
+        </div>
+      </BrowserRouter>
+      <ErrorDialog
+        onOk={() => errorDialog?.close()}
+        id="error-dialog"
+        {...error}
+      />
+    </div>
   );
 }
 

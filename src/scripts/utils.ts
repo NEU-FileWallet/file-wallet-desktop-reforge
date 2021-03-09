@@ -185,7 +185,7 @@ export async function boostrapCheck(config?: AppConfig) {
     } catch(e) {
       console.log(e)
     }
-  
+    
     result.profile =  existsSync(connectionProfilePath)
     result.identity = existsSync(join(walletDirectory, `${userID}.id`))
   } catch(e) {

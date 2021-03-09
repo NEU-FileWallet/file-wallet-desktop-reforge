@@ -11,7 +11,7 @@ export interface AppLoadingProps extends LoadingProps {}
 function AppLoading(props: AppLoadingProps, ref: React.Ref<AppLoadingIns>) {
   const { content } = props;
   const [animating, setAnimating] = useState(false);
-  const [isShow, setIsShow] = useState(true);
+  const [isShow, setIsShow] = useState(false);
   useImperativeHandle(
     ref,
     () => ({

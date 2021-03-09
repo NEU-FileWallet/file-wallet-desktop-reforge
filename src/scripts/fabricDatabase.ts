@@ -1,4 +1,4 @@
-import { readFileSync } from "original-fs";
+import { readFileSync } from "fs";
 import { join } from "path";
 import {
   ChaincodeInterface,
