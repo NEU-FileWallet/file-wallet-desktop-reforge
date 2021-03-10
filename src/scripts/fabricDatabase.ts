@@ -1,5 +1,3 @@
-import { readFileSync } from "original-fs";
-import { join } from "path";
 import {
   ChaincodeInterface,
   Directory,
@@ -16,22 +14,18 @@ let database: ChaincodeInterface;
 
 async function buildDatabase() {
   const {
-    walletDirectory,
-    userID,
+    ccp,
+    identities,
     channelID,
-    connectionProfilePath,
     gatewayURL,
   } = await getConfig();
 
-  const ccp = JSON.parse(readFileSync(connectionProfilePath).toString());
-  const identity = JSON.parse(
-    readFileSync(join(walletDirectory, `${userID}.id`)).toString()
-  );
+  const identity = identities.find(i => i.enable)
   const options = {
     channelID,
     ccp,
-    username: userID,
-    identity,
+    username: identity?.label || '',
+    identity: identity?.content,
   };
   return await FabricDatabase.new(gatewayURL, options);
 }
@@ -232,13 +226,13 @@ export default class FabricDatabase implements ChaincodeInterface {
     ids: string[],
     recursive = true
   ) => {
-    return this.submitTransaction(
-      "AddSubscribers",
-      directoryKey,
-      JSON.stringify(ids),
-      JSON.stringify(recursive)
-    );
-  };
+      return this.submitTransaction(
+        "AddSubscribers",
+        directoryKey,
+        JSON.stringify(ids),
+        JSON.stringify(recursive)
+      );
+    };
   addCooperators: (
     directoryKey: string,
     ids: string[],
@@ -248,13 +242,13 @@ export default class FabricDatabase implements ChaincodeInterface {
     ids: string[],
     recursive = true
   ) => {
-    return this.submitTransaction(
-      "AddCooperators",
-      directoryKey,
-      JSON.stringify(ids),
-      JSON.stringify(recursive)
-    );
-  };
+      return this.submitTransaction(
+        "AddCooperators",
+        directoryKey,
+        JSON.stringify(ids),
+        JSON.stringify(recursive)
+      );
+    };
   removeSubscribers: (
     directoryKey: string,
     ids: string[],
@@ -264,13 +258,13 @@ export default class FabricDatabase implements ChaincodeInterface {
     ids: string[],
     recursive = true
   ) => {
-    return this.submitTransaction(
-      "RemoveSubscribers",
-      directoryKey,
-      JSON.stringify(ids),
-      JSON.stringify(recursive)
-    );
-  };
+      return this.submitTransaction(
+        "RemoveSubscribers",
+        directoryKey,
+        JSON.stringify(ids),
+        JSON.stringify(recursive)
+      );
+    };
   removeCooperators: (
     directoryKey: string,
     ids: string[],
@@ -280,11 +274,11 @@ export default class FabricDatabase implements ChaincodeInterface {
     ids: string[],
     recursive = true
   ) => {
-    return this.submitTransaction(
-      "RemoveCooperators",
-      directoryKey,
-      JSON.stringify(ids),
-      JSON.stringify(recursive)
-    );
-  };
+      return this.submitTransaction(
+        "RemoveCooperators",
+        directoryKey,
+        JSON.stringify(ids),
+        JSON.stringify(recursive)
+      );
+    };
 }

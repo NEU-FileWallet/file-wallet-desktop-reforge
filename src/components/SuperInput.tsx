@@ -13,12 +13,13 @@ export interface SuperInputIns {
   clear: () => void;
   setErrMsg: (msg: string) => void;
   focus: () => void;
+  setValue: (value: string) => void
 }
 
 export interface SuperInputProps
   extends React.DetailedHTMLProps<
-    React.HTMLAttributes<HTMLDivElement>,
-    HTMLDivElement
+  React.HTMLAttributes<HTMLDivElement>,
+  HTMLDivElement
   > {
   title?: string;
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -83,6 +84,9 @@ function SuperInput(props: SuperInputProps, ref: React.Ref<SuperInputIns>) {
       focus: () => {
         inputRef.current?.focus();
       },
+      setValue: (value: string) => {
+        setValue(value)
+      }
     }),
     [validate]
   );

@@ -1,26 +1,36 @@
 import { ipcRenderer } from "electron";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
+import { execSync } from "child_process";
 import { join, parse } from "path";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import store from '../store/store'
+import { useSelector } from "react-redux";
+import { AppState } from "../store/reducer";
 
-const defaultConfig: AppConfig = {
+const defaultConfig: Partial<AppConfig> = {
   IPFSPath: "ipfs",
-  connectionProfilePath:
-    "/Users/chenjienan/fabric-fs-desktop/test_data/profile.json",
-  walletDirectory: "/Users/chenjienan/fabric-fs-desktop/test_data/wallet",
+  // connectionProfilePath:
+  //   "/Users/chenjienan/fabric-fs-desktop/test_data/profile.json",
+  // walletDirectory: "/Users/chenjienan/fabric-fs-desktop/test_data/wallet",
   channelID: "mychannel",
-  userID: "gmyx",
-  userPassword: "654321",
+  // userID: "gmyx",
+  // userPassword: "654321",
   gatewayURL: "ws://ldgame.xyz:2333",
+  identities: []
 };
 
 export interface AppConfig {
   IPFSPath: string;
-  connectionProfilePath: string;
-  walletDirectory: string;
+  // connectionProfilePath: string;
+  ccp: any;
+  // walletDirectory: string;
+  identities: {
+    label: string
+    enable: boolean
+    content: any
+  }[];
   channelID: string;
-  userID: string;
-  userPassword: string;
+  // userID: string;
   gatewayURL: string;
 }
 
@@ -34,8 +44,7 @@ async function getConfigPath() {
   return join(userDataPath, "config.json");
 }
 
-async function loadConfig() {
-  const configPath = await getConfigPath();
+async function loadConfig(configPath: string) {
   console.log(configPath);
   if (!existsSync(configPath)) {
     const { dir } = parse(configPath);
@@ -48,41 +57,56 @@ async function loadConfig() {
   return { ...defaultConfig, ...temp };
 }
 
-let config: any;
-
 export async function getConfig(): Promise<AppConfig> {
+  const { config } = store.getState()
   if (!config) {
-    config = await loadConfig();
+    const configPath = await getConfigPath();
+    const newConfig = await loadConfig(configPath);
+    store.dispatch({ type: 'updateConfig', payload: newConfig })
+    return newConfig
   }
   return config;
 }
 
-export async function updateConfig(newConfig: AppConfig) {
-  config = newConfig;
+export async function updateConfig(newConfig: Partial<AppConfig>) {
+  const { config } = store.getState()
+  const mergedConfig = { ...config, ...newConfig };
+  store.dispatch({ type: 'updateConfig', payload: mergedConfig })
   const configPath = await getConfigPath();
-  writeFileSync(configPath, JSON.stringify(newConfig));
+  writeFileSync(configPath, JSON.stringify(mergedConfig));
 }
 
-export async function readConnectionProfile() {
-  const config = await getConfig();
-  return JSON.parse(readFileSync(config.connectionProfilePath).toString());
+export async function getConnectionProfile() {
+  const config = await getConfig()
+  return config.ccp
 }
 
 export function useAppConfig(): [
   AppConfig | undefined,
   (newConfig: Partial<AppConfig>) => Promise<void>
 ] {
-  const [config, setConfig] = useState<AppConfig>();
-
+  const config = useSelector((state: AppState) => state.config)
   useEffect(() => {
-    getConfig().then((config) => {
-      setConfig(config);
-    });
+    getConfig()
   }, []);
   const setNewConfig = async (newConfig: Partial<AppConfig>) => {
     const fullConfig = { ...config, ...newConfig } as AppConfig;
     await updateConfig(fullConfig);
-    setConfig(fullConfig);
   };
   return [config, setNewConfig];
+}
+
+export function getEnabledIdentity(config?: AppConfig) {
+  return config?.identities.find(i => i.enable)
+}
+
+export function checkIPFS(path?: string) {
+  if (!path) return false
+
+  try {
+    execSync(`${path} version`)
+    return true
+  } catch {
+    return false
+  }
 }

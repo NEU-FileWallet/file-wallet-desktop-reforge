@@ -19,7 +19,7 @@ const options = {
 };
 
 it("test connect", async () => {
-  client = await GatewayClient.new("ws://localhost:2333", options);
+  client = await GatewayClient.new("ws://ldgame.xyz:2333", options);
   expect(client).toBeDefined();
 });
 

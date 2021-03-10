@@ -1,48 +1,29 @@
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import { useHistory } from "react-router-dom";
 import ConfigCard from "../components/ConfigCard";
 import { ConfigContainer } from "../components/ConfigContainer";
 import Header from "../components/Header";
 import { useAppConfig } from "../scripts/config";
-import { removeIdentity, useIdentities } from "../scripts/identity";
-import { useDispatch } from "react-redux";
 import { Popover } from "react-tiny-popover";
-import NewIdentityDialog from "../components/NewIdentityDialog";
-import { getDatabase, rebuildDatabase } from "../scripts/fabricDatabase";
+import LargeConfigDialog from "../components/LargeConfigDialog";
+import { addIdentity, changeIdentity } from "../scripts/identity";
 
 export default function IdentityManagementPage() {
   const history = useHistory();
   const [appConfig, setConfig] = useAppConfig();
-  const [identityMeta, refresh] = useIdentities(appConfig?.walletDirectory);
-  const [selectedIdentity, setSelectedIdentity] = useState(0);
   const [showPopover, setShowPopover] = useState(false);
   const [identityDialogVis, setIdentityDialogVis] = useState(false);
-  const dispatch = useDispatch();
 
-  useEffect(() => {
-    setSelectedIdentity(
-      identityMeta.findIndex((meta) => meta.label === appConfig?.userID)
-    );
-  }, [appConfig?.userID, identityMeta]);
-
-  const changeIdentity = async (index: number) => {
-    setConfig({ userID: identityMeta[index].label });
-    const database = await rebuildDatabase();
-    const userProfile = await database.readUserProfile();
-    console.log(userProfile);
-    dispatch({ type: "updateUserProfile", payload: userProfile });
-  };
 
   const handleDeleteIdentity = async (label: string) => {
-    if (selectedIdentity === identityMeta.findIndex((v) => v.label === label)) {
-      const database = await getDatabase();
-      database.disconnect();
-      setConfig({ userID: undefined });
-      dispatch({ type: "updateUserProfile", payload: undefined });
-    }
-    await removeIdentity(label);
-    refresh();
+    const identities = appConfig?.identities || []
+    setConfig({ identities: identities.filter(i => i.label !== label) })
   };
+
+  const handleAddIdentity = async (label?: string, content?: string) => {
+    if (!label || !content) return
+    addIdentity(label, content)
+  }
 
   return (
     <>
@@ -78,17 +59,17 @@ export default function IdentityManagementPage() {
       <ConfigContainer>
         <ConfigCard>
           <ul style={{ marginTop: 24 }} className="mdui-list mdui-list-dense">
-            {identityMeta.map((meta, index) => (
-              <div key={meta.label}>
+            {appConfig?.identities.map((identity, index) => (
+              <div key={identity.label}>
                 {index !== 0 && <div className="mdui-divider"></div>}
                 <li style={{ height: 64 }} className="mdui-list-item">
                   <label className="mdui-radio">
                     <input
                       type="radio"
                       name="group1"
-                      checked={selectedIdentity === index}
+                      checked={identity.enable}
                       readOnly
-                      onClick={() => changeIdentity(index)}
+                      onClick={() => changeIdentity(identity.label)}
                     />
                     <i className="mdui-radio-icon"></i>
                   </label>
@@ -97,13 +78,13 @@ export default function IdentityManagementPage() {
                       className="mdui-list-item-title"
                       style={{ wordBreak: "break-all" }}
                     >
-                      {meta.label}
+                      {identity.label}
                     </div>
                   </div>
                   <button
                     className="mdui-btn mdui-btn-icon  mdui-ripple"
                     onClick={() => {
-                      handleDeleteIdentity(meta.label);
+                      handleDeleteIdentity(identity.label);
                     }}
                   >
                     <i
@@ -119,12 +100,12 @@ export default function IdentityManagementPage() {
           </ul>
         </ConfigCard>
       </ConfigContainer>
-      <NewIdentityDialog
+      <LargeConfigDialog
         style={{ width: 500 }}
+        label="Add identity"
         visible={identityDialogVis}
-        onClose={() => setIdentityDialogVis(false)}
-        onAddIdentity={refresh}
-      ></NewIdentityDialog>
+        onOK={handleAddIdentity}
+      />
     </>
   );
 }

@@ -7,14 +7,14 @@ const cardStyle: CSSProperties = {
 
 export interface ConfigCardProps {
   children?: React.ReactNode;
+  style?: CSSProperties
 }
 
 export default function ConfigCard(props: ConfigCardProps) {
-  const { children } = props;
+  const { children, style } = props;
   return (
-    <div style={cardStyle} className="mdui-shadow-5">
+    <div style={{ ...cardStyle, ...style }} className="mdui-shadow-5">
       {children}
-     
     </div>
   );
 }

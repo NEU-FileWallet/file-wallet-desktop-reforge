@@ -2,21 +2,19 @@ import {
   lstatSync,
   readdirSync,
   readFileSync,
-  unlinkSync,
-  writeFileSync,
 } from "fs";
 import { join, parse } from "path";
 import { useCallback, useEffect, useState } from "react";
-import { getConfig } from "./config";
-import FabricDatabase from "./fabricDatabase";
+import { getConfig, updateConfig } from "./config";
+import FabricDatabase, { rebuildDatabase } from "./fabricDatabase";
+import store from '../store/store'
 
 export async function testIdentity(username: string, identity: any) {
   const {
     channelID,
-    connectionProfilePath,
+    ccp,
     gatewayURL,
   } = await getConfig();
-  const ccp = JSON.parse(readFileSync(connectionProfilePath).toString());
   const options = {
     channelID,
     ccp,
@@ -44,18 +42,41 @@ export async function testIdentity(username: string, identity: any) {
   return result;
 }
 
-export async function addIdentity(label: string, identity: any) {
-  const { walletDirectory } = await getConfig();
-  console.log(walletDirectory);
-  writeFileSync(join(walletDirectory, `${label}.id`), JSON.stringify(identity));
-  console.log("wrote file");
+const reloadUserProfile = async () => {
+  const database = await rebuildDatabase();
+  const userProfile = await database.readUserProfile();
+  store.dispatch({ type: "updateUserProfile", payload: userProfile });
+}
+
+export const changeIdentity = async (label: string) => {
+  const { identities } = await getConfig()
+  identities?.forEach((identity) => identity.enable = identity.label === label)
+  await updateConfig({ identities })
+  await reloadUserProfile()
+};
+
+export async function addIdentity(label: string, identity: any, enable = false) {
+  const { identities } = await getConfig();
+  const existedIdentity = identities.find(i => i.label === label)
+  if (existedIdentity) {
+    existedIdentity.content = JSON.parse(identity)
+    if (enable) {
+      existedIdentity.enable = true
+    }
+
+    if (existedIdentity.enable) {
+      await reloadUserProfile()
+    }
+  } else {
+    identities.push({ label, content: JSON.parse(identity), enable })
+  }
+  updateConfig({ identities })
 }
 
 export async function removeIdentity(label: string) {
-  const { walletDirectory } = await getConfig();
-  unlinkSync(join(walletDirectory, `${label}.id`));
+  const { identities } = await getConfig();
+  await updateConfig({ identities: identities.filter(i => i.label !== label) })
 }
-
 interface X509Identity {
   credentials: {
     certificate: string;

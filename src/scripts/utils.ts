@@ -1,8 +1,10 @@
+import { execSync } from "child_process";
 import { ipcRenderer } from "electron";
 import { lstatSync } from "fs";
 import { Base64 } from "js-base64";
 import { parse } from "path";
 import store from "../store/store";
+import { AppConfig, getConfig } from "./config";
 import { getDatabase } from "./fabricDatabase";
 import icons from "./icon.json";
 
@@ -56,9 +58,8 @@ export function humanFileSize(bytes?: number, si = false, dp = 1) {
 
 export function formatDate(timestamp: number) {
   const date = new Date(timestamp);
-  return `${date.getFullYear()}-${
-    date.getMonth() + 1
-  }-${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+  return `${date.getFullYear()}-${date.getMonth() + 1
+    }-${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
 }
 
 export const getFileIcon = (
@@ -147,7 +148,6 @@ export function monitorNetworkState() {
     try {
       const database = await getDatabase();
       const isFabricAlive = await database.readUserProfile();
-      console.log(!!isFabricAlive)
       updateState({
         FABRIC: !!isFabricAlive,
       })
@@ -163,3 +163,23 @@ export function monitorNetworkState() {
   }, 5000);
 }
 
+export async function boostrapCheck(config?: AppConfig) {
+  if (!config) {
+    config = await getConfig()
+  }
+
+  const { ccp, identities, IPFSPath } = config
+  const result = {
+    profile: !!ccp,
+    identity: !!identities?.find(i => i.enable),
+    IPFS: false
+  }
+  try {
+    execSync(`${IPFSPath} version`)
+    result.IPFS = true
+  } catch (e) {
+    console.log(e)
+  }
+
+  return result
+}
