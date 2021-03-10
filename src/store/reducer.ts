@@ -1,4 +1,5 @@
 import { UserProfile } from "../scripts/chaincodeInterface";
+import { AppConfig } from '../scripts/config'
 
 export interface NetworkState {
   IPFS: boolean;
@@ -8,6 +9,7 @@ export interface NetworkState {
 export interface AppState {
   userProfile?: UserProfile;
   network: NetworkState;
+  config?: AppConfig
 }
 
 export const initialState: AppState = {
@@ -39,6 +41,11 @@ export function AppReducer(
           ...state.network,
           ...action.payload
         }
+      }
+    case "updateConfig":
+      return {
+        ...state,
+        config: { ...state.config, ...action.payload }
       }
   }
 

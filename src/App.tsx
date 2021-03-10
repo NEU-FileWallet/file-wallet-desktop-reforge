@@ -21,6 +21,8 @@ import store from "./store/store";
 import { boostrapCheck, monitorNetworkState } from "./scripts/utils";
 import { getDatabase } from "./scripts/fabricDatabase";
 import BootstrapPage from "./pages/BootstrapPage";
+import { getConfig, useAppConfig } from "./scripts/config";
+import { useDispatch } from "react-redux";
 
 const drawerItems: AppDrawerItem[] = [
   {
@@ -47,15 +49,24 @@ function App() {
   const ref = useRef<AppLoadingIns>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showBoostrapPage, setShowBoostrapPage] = useState(false)
+  const [missingOptions, setMissionOption] = useState<{
+    showIdentity?: boolean
+    showIPFS?: boolean
+    showCCP?: boolean
+  }>({ showCCP: false, showIdentity: false, showIPFS: false })
+  const [config] = useAppConfig()
+  const dispatch = useDispatch()
+  console.log(config)
 
   const initiateIPFS = async () => {
     ref.current?.show();
     const result = await ipcRenderer.invoke("ping-ipfs");
 
     if (!result) {
-      const path = await ipcRenderer.invoke("find-Ipfs-Path");
+      const path = config?.IPFSPath
       const dialog = new mdui.Dialog("#error-dialog");
       setErrorDialog(dialog);
+      if (!config) return
       if (path) {
         try {
           await ipcRenderer.invoke("init-Ipfs", path);
@@ -86,8 +97,9 @@ function App() {
 
   const bootstrap = async () => {
     const { profile, identity, IPFS } = await boostrapCheck()
-
+    console.log(233);
     if (!profile || !identity || !IPFS) {
+      setMissionOption({ showCCP: !profile, showIPFS: !IPFS, showIdentity: !identity })
       setShowBoostrapPage(true)
     } else {
       await Promise.all([initiateIPFS(), initiateFabric()]).finally(() => {
@@ -95,7 +107,12 @@ function App() {
       });
       ref.current?.dismiss();
       setIsLoading(false);
+      setShowBoostrapPage(false)
     }
+  }
+
+  const handleOnNext = async () => {
+    await boostrapCheck()
   }
 
   useEffect(() => {
@@ -104,7 +121,7 @@ function App() {
 
   return (
     <div className="app">
-      { showBoostrapPage && <BootstrapPage/> }
+      { showBoostrapPage && <BootstrapPage onNext={handleOnNext} {...missingOptions} />}
       <AppLoading ref={ref} content={loadingContent} />
       <BrowserRouter>
         <div style={{ display: "flex", flexDirection: "column" }}>

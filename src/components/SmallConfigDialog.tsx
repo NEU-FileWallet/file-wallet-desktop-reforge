@@ -12,7 +12,7 @@ export interface ConfigDialogProps extends DialogProps {
   defaultValue?: string;
 }
 
-export default function ConfigDialog(props: ConfigDialogProps) {
+export default function SmallConfigDialog(props: ConfigDialogProps) {
   const { title, rules, onOk, defaultValue, ...otherProps } = props;
   const [loading, setLoading] = useState(false);
   const dialogRef = useRef<DialogIns>(null);

@@ -1,8 +1,8 @@
 import { execSync } from "child_process";
 import { ipcRenderer } from "electron";
-import { existsSync, lstatSync } from "fs";
+import { lstatSync } from "fs";
 import { Base64 } from "js-base64";
-import { join, parse } from "path";
+import { parse } from "path";
 import store from "../store/store";
 import { AppConfig, getConfig } from "./config";
 import { getDatabase } from "./fabricDatabase";
@@ -58,9 +58,8 @@ export function humanFileSize(bytes?: number, si = false, dp = 1) {
 
 export function formatDate(timestamp: number) {
   const date = new Date(timestamp);
-  return `${date.getFullYear()}-${
-    date.getMonth() + 1
-  }-${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+  return `${date.getFullYear()}-${date.getMonth() + 1
+    }-${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
 }
 
 export const getFileIcon = (
@@ -149,7 +148,6 @@ export function monitorNetworkState() {
     try {
       const database = await getDatabase();
       const isFabricAlive = await database.readUserProfile();
-      console.log(!!isFabricAlive)
       updateState({
         FABRIC: !!isFabricAlive,
       })
@@ -170,27 +168,18 @@ export async function boostrapCheck(config?: AppConfig) {
     config = await getConfig()
   }
 
+  const { ccp, identities, IPFSPath } = config
   const result = {
-    profile: false,
-    identity: false,
+    profile: !!ccp,
+    identity: !!identities?.find(i => i.enable),
     IPFS: false
   }
-
-  const { walletDirectory, connectionProfilePath, userID, IPFSPath } = config
-
   try {
-    try {
-      execSync(`${IPFSPath} version`)
-      result.IPFS = true
-    } catch(e) {
-      console.log(e)
-    }
-    
-    result.profile =  existsSync(connectionProfilePath)
-    result.identity = existsSync(join(walletDirectory, `${userID}.id`))
-  } catch(e) {
+    execSync(`${IPFSPath} version`)
+    result.IPFS = true
+  } catch (e) {
     console.log(e)
   }
- 
+
   return result
 }

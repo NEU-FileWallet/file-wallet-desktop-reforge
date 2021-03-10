@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useHistory } from "react-router-dom";
 import { ConfigContainer } from "../components/ConfigContainer";
-import ConfigDialog from "../components/ConfigDialog";
+import SmallConfigDialog from "../components/SmallConfigDialog";
 import ConfigSections, { ConfigSection } from "../components/ConfigSection";
-import { AppConfig, useAppConfig } from "../scripts/config";
+import { AppConfig, getEnabledIdentity, useAppConfig } from "../scripts/config";
 import { rebuildDatabase } from "../scripts/fabricDatabase";
 import { notEmpty, Rule, websocketURL } from "../scripts/rules";
 
@@ -28,7 +28,7 @@ export default function ConfigPage(props: SettingProps) {
       items: [
         {
           title: "Identity",
-          subTitle: config.userID,
+          subTitle: getEnabledIdentity(config)?.label,
           icon: "person",
           onClick: () => {
             history.push("/setting/identity");
@@ -36,11 +36,10 @@ export default function ConfigPage(props: SettingProps) {
         },
         {
           title: "Connection Profile",
-          subTitle: config.connectionProfilePath,
-          icon: 'text_snippet',
+          subTitle: '',
+          icon: 'tune',
           onClick: () => {
             setConfigDialogTitle('Select connection profile')
-            
           }
         }
       ],
@@ -87,7 +86,7 @@ export default function ConfigPage(props: SettingProps) {
 
   return (
     <>
-      <ConfigDialog
+      <SmallConfigDialog
         style={{ width: 500 }}
         rules={rules}
         visible={configDialogVis}
@@ -95,7 +94,7 @@ export default function ConfigPage(props: SettingProps) {
         onClose={() => setConfigDialogVis(false)}
         title={configDialogTitle}
         defaultValue={defaultValue}
-      ></ConfigDialog>
+      ></SmallConfigDialog>
 
       <ConfigContainer>
         <ConfigSections sections={sections} />

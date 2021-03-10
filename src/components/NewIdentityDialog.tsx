@@ -10,7 +10,7 @@ import LoadingButton from "./LoadingButton";
 import SuperInput, { SuperInputIns } from "./SuperInput";
 
 export interface NewIdentityDialogProps extends Omit<DialogProps, "title"> {
-  onAddIdentity?: (label: string) => void;
+  onAddIdentity?: (label: string, content: string) => void;
 }
 
 export default function NewIdentityDialog(props: NewIdentityDialogProps) {
@@ -38,7 +38,7 @@ export default function NewIdentityDialog(props: NewIdentityDialogProps) {
         if (result) {
           await addIdentity(label!!, identity);
           if (onAddIdentity) {
-            onAddIdentity(label!!);
+            onAddIdentity(label!!, identity);
           }
           dialogRef.current?.close();
         } else {
