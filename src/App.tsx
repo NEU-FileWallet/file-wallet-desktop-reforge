@@ -59,7 +59,7 @@ const initiateFabric = async () => {
 function App() {
   const [loadingContent] = useState<string>("Initializing");
   const ref = useRef<AppLoadingIns>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [showBoostrapPage, setShowBoostrapPage] = useState(false);
   const [missingOptions, setMissionOption] = useState<{
     showIdentity?: boolean;
@@ -70,7 +70,7 @@ function App() {
 
   const bootstrap = async () => {
     const { profile, identity, IPFS } = await boostrapCheck();
-
+    console.log(profile, identity, IPFS)
     if (!profile || !identity || !IPFS) {
       setMissionOption({
         showCCP: !profile,
@@ -92,6 +92,7 @@ function App() {
 
   const handleOnNext = async () => {
     setIsLoading(true)
+    console.log('next')
     await bootstrap();
   };
 

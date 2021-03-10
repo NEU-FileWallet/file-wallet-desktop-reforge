@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useHistory } from "react-router-dom";
 import { ConfigContainer } from "../components/ConfigContainer";
 import SmallConfigDialog from "../components/SmallConfigDialog";
@@ -6,8 +6,10 @@ import ConfigSections, { ConfigSection } from "../components/ConfigSection";
 import { AppConfig, getEnabledIdentity, useAppConfig } from "../scripts/config";
 import { rebuildDatabase } from "../scripts/fabricDatabase";
 import { notEmpty, Rule, websocketURL } from "../scripts/rules";
+import LargeConfigDialog from "../components/LargeConfigDialog";
+import IPFSConfigDialog from "../components/IPFSConfigDialog";
 
-export interface SettingProps { }
+export interface SettingProps {}
 
 export default function ConfigPage(props: SettingProps) {
   const history = useHistory();
@@ -17,6 +19,8 @@ export default function ConfigPage(props: SettingProps) {
   const [defaultValue, setDefaultValue] = useState("");
   const [rules, setRules] = useState<Rule[]>();
   const [onOK, setOnOK] = useState<any>();
+  const [CCPVis, setCCPVis] = useState(false)
+  const [IPFSVis, setIPFSVis] = useState(false);
 
   if (!tempConfig) return null;
 
@@ -36,12 +40,12 @@ export default function ConfigPage(props: SettingProps) {
         },
         {
           title: "Connection Profile",
-          subTitle: '',
-          icon: 'tune',
+          subTitle: "",
+          icon: "tune",
           onClick: () => {
-            setConfigDialogTitle('Select connection profile')
-          }
-        }
+            setCCPVis(true)
+          },
+        },
       ],
     },
     {
@@ -51,7 +55,9 @@ export default function ConfigPage(props: SettingProps) {
           title: "Binary path",
           subTitle: config.IPFSPath,
           icon: "notes",
-          onClick: () => console.log(233),
+          onClick: () => {
+            setIPFSVis(true)
+          },
         },
         {
           title: "IPFS config",
@@ -84,6 +90,18 @@ export default function ConfigPage(props: SettingProps) {
     },
   ];
 
+  const handleSetCCP = async (_label?: string, ccp?: any) => {
+    if (!ccp) return;
+    await setConfig({ ccp: JSON.parse(ccp) });
+    setCCPVis(false);
+    await rebuildDatabase()
+  };
+
+  const handleSetIPFS = async (value?: string) => {
+    setConfig({ IPFSPath: value });
+  };
+
+
   return (
     <>
       <SmallConfigDialog
@@ -95,7 +113,19 @@ export default function ConfigPage(props: SettingProps) {
         title={configDialogTitle}
         defaultValue={defaultValue}
       ></SmallConfigDialog>
-
+      <LargeConfigDialog
+        title="Add connection profile"
+        onOK={handleSetCCP}
+        visible={CCPVis}
+        style={{ width: 500 }}
+        onClose={() => setCCPVis(false)}
+      />
+       <IPFSConfigDialog
+        onOK={handleSetIPFS}
+        visible={IPFSVis}
+        style={{ width: 500 }}
+        onClose={() => setIPFSVis(false)}
+      />
       <ConfigContainer>
         <ConfigSections sections={sections} />
       </ConfigContainer>

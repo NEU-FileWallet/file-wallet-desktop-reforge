@@ -45,7 +45,7 @@ export default function BootstrapPage(props: BootstrapPageProps) {
     });
   }
 
-  if (showCCP) {
+  if (showIdentity) {
     items.push({
       title: "Identity",
       subTitle: getEnabledIdentity(config)?.label,
@@ -56,7 +56,7 @@ export default function BootstrapPage(props: BootstrapPageProps) {
     });
   }
 
-  if (showIdentity) {
+  if (showCCP) {
     items.push({
       title: "Connection Profile",
       subTitle: "",
@@ -84,7 +84,7 @@ export default function BootstrapPage(props: BootstrapPageProps) {
   };
 
   const handleSetCCP = async (_label?: string, ccp?: any) => {
-    console.log(ccp);
+      console.log(ccp)
     if (!ccp) return;
     setConfig({ ccp: JSON.parse(ccp) });
     setCCPVis(false);

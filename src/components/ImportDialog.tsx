@@ -58,8 +58,7 @@ export default function ImportDialog(props: ImportDialogProps) {
     setLoading(false);
   };
 
-  console.log(linkData);
-  console.log(loading);
+
   return (
     <Dialog
       ref={dialogRef}

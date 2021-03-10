@@ -105,6 +105,7 @@ export default function IdentityManagementPage() {
         label="Add identity"
         visible={identityDialogVis}
         onOK={handleAddIdentity}
+        onClose={() => setIdentityDialogVis(false)}
       />
     </>
   );
