@@ -277,11 +277,9 @@ export function FileBrowser(props: FileBrowserProps) {
 
   const handleImportFromLink = async (link: ItemMeta) => {
     if (importFromLink) {
-      setLoadingDialogText("Importing");
-      setLoadingDialogVis(true);
       await importFromLink(currentRecord.key, link);
       await refreshFilesAndDirs(currentRecord.key);
-      setLoadingDialogVis(false);
+      setImportDialogVis(false)
     }
   };
 

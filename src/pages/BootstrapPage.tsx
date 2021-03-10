@@ -8,8 +8,6 @@ import IPFSConfigDialog from "../components/IPFSConfigDialog";
 import { getEnabledIdentity, useAppConfig } from "../scripts/config";
 
 import LargeConfigDialog from "../components/LargeConfigDialog";
-import { boostrapCheck } from "../scripts/utils";
-import LoadingDialog from "../components/LoadingDialog";
 import { addIdentity } from "../scripts/identity";
 
 const containerStyle: CSSProperties = {
@@ -33,7 +31,6 @@ export default function BootstrapPage(props: BootstrapPageProps) {
   const [IPFSVis, setIPFSVis] = useState(false);
   const [IdentityVis, setIdentityVis] = useState(false);
   const [CCPVis, setCCPVis] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   const items: ConfigItem[] = [];
 
@@ -94,17 +91,13 @@ export default function BootstrapPage(props: BootstrapPageProps) {
   };
 
   const handleClickNext = async () => {
-    setLoading(true);
     if (onNext) {
-
       await onNext();
     }
-    setLoading(false);
   };
 
   return (
     <div style={containerStyle}>
-      {loading && <LoadingDialog></LoadingDialog>}
       <IPFSConfigDialog
         onOK={handleSetIPFS}
         visible={IPFSVis}
@@ -142,7 +135,6 @@ export default function BootstrapPage(props: BootstrapPageProps) {
         </ConfigCard>
         <button
           onClick={handleClickNext}
-          disabled={loading}
           style={{ width: 400, marginTop: 30 }}
           className="mdui-btn mdui-btn-block mdui-color-theme-accent"
         >

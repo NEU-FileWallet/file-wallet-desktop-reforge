@@ -1,4 +1,4 @@
-import { CSSProperties, useEffect, useImperativeHandle, useState } from "react";
+import { CSSProperties, useCallback, useEffect, useImperativeHandle, useState } from "react";
 import { v4 } from "uuid";
 import mdui from "mdui";
 import React from "react";
@@ -13,14 +13,30 @@ export interface DialogProps {
   visible?: boolean;
   onClose?: () => void;
   style?: CSSProperties;
-  persistent?: boolean
-  title?: string
+  persistent?: boolean;
+  title?: string;
 }
 
 function Dialog(props: DialogProps, ref: React.Ref<DialogIns>) {
-  const { children, visible, onClose, style, title,persistent = false } = props;
+  const {
+    children,
+    visible,
+    onClose,
+    style,
+    title,
+    persistent = false,
+  } = props;
   const [id] = useState(v4());
   const [dialog, setDialog] = useState<any>();
+
+  const close = useCallback(
+    () => {
+      dialog?.close();
+      dialog?.destroy();
+    },
+    [dialog],
+  ) 
+
   useImperativeHandle(
     ref,
     () => {
@@ -28,12 +44,10 @@ function Dialog(props: DialogProps, ref: React.Ref<DialogIns>) {
         update: () => {
           dialog?.handleUpdate();
         },
-        close: () => {
-          dialog?.close()
-        }
+        close: close,
       };
     },
-    [dialog]
+    [close, dialog]
   );
 
   useEffect(() => {
@@ -43,7 +57,7 @@ function Dialog(props: DialogProps, ref: React.Ref<DialogIns>) {
     } else {
       const dia = new mdui.Dialog(`#${id}`, {
         modal: persistent,
-        closeOnEsc: !persistent
+        closeOnEsc: !persistent,
       });
       setDialog(dia);
     }
@@ -53,9 +67,9 @@ function Dialog(props: DialogProps, ref: React.Ref<DialogIns>) {
       }
     });
     return () => {
-      dia?.destroy();
+      dialog?.destroy();
     };
-  }, [dialog, id, onClose, persistent]);
+  }, [dialog, id, onClose, persistent, visible]);
 
   useEffect(() => {
     if (!dialog) return;
@@ -63,15 +77,14 @@ function Dialog(props: DialogProps, ref: React.Ref<DialogIns>) {
     if (visible) {
       dialog.open();
     } else {
-      dialog.close();
-      dialog.destroy();
+      close()
     }
-  }, [dialog, visible]);
+  }, [close, dialog, visible]);
 
   return (
     <div className="mdui-dialog" id={id} style={style}>
-      { title && <div className="mdui-dialog-title">{title}</div> }
-      { visible && children}
+      {title && <div className="mdui-dialog-title">{title}</div>}
+      {visible && children}
     </div>
   );
 }

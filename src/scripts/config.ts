@@ -8,29 +8,20 @@ import { useSelector } from "react-redux";
 import { AppState } from "../store/reducer";
 
 const defaultConfig: Partial<AppConfig> = {
-  IPFSPath: "ipfs",
-  // connectionProfilePath:
-  //   "/Users/chenjienan/fabric-fs-desktop/test_data/profile.json",
-  // walletDirectory: "/Users/chenjienan/fabric-fs-desktop/test_data/wallet",
   channelID: "mychannel",
-  // userID: "gmyx",
-  // userPassword: "654321",
   gatewayURL: "ws://ldgame.xyz:2333",
   identities: []
 };
 
 export interface AppConfig {
   IPFSPath: string;
-  // connectionProfilePath: string;
   ccp: any;
-  // walletDirectory: string;
   identities: {
     label: string
     enable: boolean
     content: any
   }[];
   channelID: string;
-  // userID: string;
   gatewayURL: string;
 }
 

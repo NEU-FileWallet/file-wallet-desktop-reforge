@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { BeatLoader } from "react-spinners";
 import { folderNameRules } from "../scripts/rules";
 import Dialog, { DialogIns, DialogProps } from "./Dialog";
 import LoadingButton from "./LoadingButton";

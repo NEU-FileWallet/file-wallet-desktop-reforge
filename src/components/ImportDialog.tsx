@@ -56,9 +56,10 @@ export default function ImportDialog(props: ImportDialogProps) {
       await onImport(linkData);
     }
     setLoading(false);
-    dialogRef.current?.close()
   };
 
+  console.log(linkData);
+  console.log(loading);
   return (
     <Dialog
       ref={dialogRef}
@@ -73,6 +74,7 @@ export default function ImportDialog(props: ImportDialogProps) {
         >
           <label className="mdui-textfield-label">Link</label>
           <input
+            value={link || ""}
             onChange={(event) => {
               setLink(event.target.value);
             }}
