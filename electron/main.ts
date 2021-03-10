@@ -5,6 +5,7 @@ import installExtension, {
   REACT_DEVELOPER_TOOLS,
 } from "electron-devtools-installer";
 import "./ipfs";
+import { Notification } from 'electron'
 
 let win: BrowserWindow | null = null;
 
@@ -71,13 +72,13 @@ app.on("activate", () => {
 });
 
 ipcMain.on("notify", (event, { title, body, path }) => {
-  new Notification(title, {
-    body,
-  }).onclick = () => {
+  const notification = new Notification({ title, body })
+  notification.once('click', () => {
     if (path) {
       shell.showItemInFolder(path);
     }
-  };
+  })
+  notification.show()
 });
 
 ipcMain.handle("close", () => {
