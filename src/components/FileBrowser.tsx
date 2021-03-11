@@ -5,10 +5,7 @@ import { join, parse } from "path";
 import React, { useCallback, useEffect, useState } from "react";
 import { v4 } from "uuid";
 import { Directory } from "../scripts/chaincodeInterface";
-import {
-  downloadFile,
-  downloadFolder,
-} from "../scripts/download";
+import { downloadFile, downloadFolder } from "../scripts/download";
 import { ItemMeta } from "../scripts/utils";
 import FileBrowserBreadcrumb from "./FileBrowserBreadcrumb";
 import FileBrowserHeader from "./FileBrowserHeader";
@@ -26,6 +23,8 @@ import ShareDialog, { ShareTarget } from "./ShareDialog";
 import RenameDialog from "./RenameDialog";
 import LoadingDialog from "./LoadingDialog";
 import { getDatabase } from "../scripts/fabricDatabase";
+import { useSelector } from "react-redux";
+import { AppState } from "../store/reducer";
 
 export type BrowserMode = "personal" | "share" | "subscriptions";
 interface ModeFunction {
@@ -56,7 +55,7 @@ interface HistoryRecord {
 }
 
 async function selectSavePath(defaultName?: string) {
-  const downloadFolderPath = await ipcRenderer.invoke("getPath", "downloads")
+  const downloadFolderPath = await ipcRenderer.invoke("getPath", "downloads");
   let defaultPath = join(downloadFolderPath, defaultName || "untitled");
   if (existsSync(defaultPath)) {
     const { name, ext } = parse(defaultPath);
@@ -77,12 +76,10 @@ export interface FileBrowserProps {
   folderFilter?: (directory: DirectoryItem) => boolean;
   newFolder?: (currentKey: string, name: string) => Promise<any>;
   importFile?: (key: string) => Promise<any>;
-  importFromLink?: (directoryKey: string, link: ItemMeta) => Promise<any>;
 }
 
 export function FileBrowser(props: FileBrowserProps) {
   const {
-    importFromLink,
     mode = "personal",
     prefix,
     rootKey,
@@ -108,6 +105,7 @@ export function FileBrowser(props: FileBrowserProps) {
   const [renameTarget, setRenameTarget] = useState<ItemDetail>();
   const [loadingDialogVis, setLoadingDialogVis] = useState(false);
   const [loadingDialogText, setLoadingDialogText] = useState("");
+  const userProfile = useSelector((state:AppState) => state.userProfile)
 
   const goBack = () => {
     if (stack.length <= 1) {
@@ -120,10 +118,11 @@ export function FileBrowser(props: FileBrowserProps) {
   const refreshFilesAndDirs = async (key: string) => {
     const database = await getDatabase();
     const currentDir = await database.readDirectory(key);
+    console.log(currentDir);
     setCurrentDir(currentDir);
     const subDirs = await database.readDirectories(currentDir.directories);
     const rootDir = { name: "..", onClick: goBack };
-    const downloadFolderPath = await ipcRenderer.invoke("getPath", "downloads")
+    const downloadFolderPath = await ipcRenderer.invoke("getPath", "downloads");
     const subDirItems: DirectoryItem[] = Object.keys(subDirs)
       .map((key_1: string) => {
         const subDir = subDirs[key_1];
@@ -276,11 +275,25 @@ export function FileBrowser(props: FileBrowserProps) {
   };
 
   const handleImportFromLink = async (link: ItemMeta) => {
-    if (importFromLink) {
-      await importFromLink(currentRecord.key, link);
+      const database = await getDatabase();
+      if (link.type === "Directory" && link.key) {
+        const dir = await database.readDirectory(link.key)
+        if (!dir.cooperators.find(c => c === userProfile?.id) && !dir.subscribers.find(s => s.id === userProfile?.id)) { 
+          await database.subscribe(link.key);
+        }
+        await database.addDirectories(currentRecord.key, [link.key]);
+      } else if (link.type === "File" && link.cid) {
+        await database.addFile(currentRecord.key, [
+          {
+            cid: link.cid,
+            cipher: "",
+            name: link.name || "--",
+            createDate: Math.ceil(new Date().valueOf() / 1000),
+          },
+        ]);
+      }
       await refreshFilesAndDirs(currentRecord.key);
-      setImportDialogVis(false)
-    }
+      setImportDialogVis(false);
   };
 
   const handleAddCooperator = async (target: string, id: string) => {

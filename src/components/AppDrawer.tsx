@@ -1,7 +1,13 @@
 import React, { CSSProperties, useState } from "react";
+import { useSelector } from "react-redux";
 import { useHistory } from "react-router-dom";
+import { copy } from "../scripts/utils";
+import { AppState } from "../store/reducer";
 import DrawerDashboard from "./DrawerDashboard";
-import { DrawerMenuButton, MenuItem as DrawerMenuItem } from "./DrawerMenuButton";
+import {
+  DrawerMenuButton,
+  MenuItem as DrawerMenuItem,
+} from "./DrawerMenuButton";
 
 export const DrawerWidth = 200;
 
@@ -11,14 +17,13 @@ const logoStyle: CSSProperties = {
   flexDirection: "column",
   alignItems: "center",
   marginTop: 20,
-  marginBottom: 20,
 };
 
 const drawerStyle: CSSProperties = {
   width: DrawerWidth,
   minWidth: DrawerWidth,
   height: "100%",
-  backgroundColor: 'transparent',
+  backgroundColor: "transparent",
 };
 
 const statusStyle: CSSProperties = {
@@ -28,20 +33,21 @@ const statusStyle: CSSProperties = {
 };
 
 export interface AppDrawerItem {
-  text: string
-  path?: string
-  icon?: string
-  children?: AppDrawerItem[]
+  text: string;
+  path?: string;
+  icon?: string;
+  children?: AppDrawerItem[];
 }
 
 export interface AppDrawerProps {
-  items: AppDrawerItem[]
+  items: AppDrawerItem[];
 }
 
 export default function AppDrawer(props: AppDrawerProps) {
-  const history = useHistory()
-  const { items } = props
+  const history = useHistory();
+  const { items } = props;
   const [activeKey, setActiveKey] = useState("/");
+  const profile = useSelector((state: AppState) => state.userProfile);
 
   const push = (path: string) => {
     return () => {
@@ -51,23 +57,23 @@ export default function AppDrawer(props: AppDrawerProps) {
   };
 
   const recurse = (item: AppDrawerItem) => {
-    const newItem: DrawerMenuItem = { ...item }
-    newItem.active = activeKey === item.path
+    const newItem: DrawerMenuItem = { ...item };
+    newItem.active = activeKey === item.path;
     if (item.path) {
-      newItem.onClick = push(item.path)
+      newItem.onClick = push(item.path);
     }
 
-    const newChildren: DrawerMenuItem[] = []
-    item.children?.forEach(child => {
-      const newChild = recurse(child)
-      newChildren.push(newChild)
-    })
-    newItem.children = newChildren
+    const newChildren: DrawerMenuItem[] = [];
+    item.children?.forEach((child) => {
+      const newChild = recurse(child);
+      newChildren.push(newChild);
+    });
+    newItem.children = newChildren;
 
-    return newItem
-  }
+    return newItem;
+  };
 
-  const finalItems: DrawerMenuItem[] = items.map(item => recurse(item))
+  const finalItems: DrawerMenuItem[] = items.map((item) => recurse(item));
 
   return (
     <div style={drawerStyle}>
@@ -81,6 +87,22 @@ export default function AppDrawer(props: AppDrawerProps) {
         />
         <span style={{ fontSize: 24, marginTop: 10 }}>File Wallet</span>
       </div>
+      <div style={{ display: "flex", justifyContent: "center" }}>
+        <span style={{ marginBottom: 10 }}>
+          ID: {profile?.id}
+          <i
+            className="material-icons"
+            style={{ fontSize: 12, marginLeft: 3, cursor: "pointer" }}
+            onClick={() => {
+              if (!profile?.id) return;
+              copy(profile.id);
+            }}
+          >
+            content_copy
+          </i>
+        </span>
+      </div>
+
       {finalItems.map((item, index) => (
         <DrawerMenuButton item={item} key={item.text}></DrawerMenuButton>
       ))}

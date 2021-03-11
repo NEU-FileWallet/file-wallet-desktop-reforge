@@ -4,13 +4,14 @@ import mdui from "mdui";
 import React, { useEffect, useRef, useState } from "react";
 import { BeatLoader } from "react-spinners";
 import {
+  copy,
   generateShareLinkForDir,
   generateShareLinkForFile,
 } from "../scripts/utils";
 import Dialog, { DialogIns, DialogProps } from "./Dialog";
 import { DirectoryItem, FileItem } from "./FileBrowserList";
 import "./ShareDialog.css";
-import { useSelector } from 'react-redux'
+import { useSelector } from "react-redux";
 import { AppState } from "../store/reducer";
 
 export interface ShareTarget {
@@ -46,13 +47,13 @@ export default function ShareDialog(props: ShareDialogProps) {
   const [SubMsg, setSubMsg] = useState("");
   const [checked, setChecked] = useState(false);
   const [isChangingState, setIsChangingState] = useState(false);
-  const userProfile = useSelector((state: AppState) => state.userProfile)
+  const userProfile = useSelector((state: AppState) => state.userProfile);
   const ref = useRef<DialogIns>(null);
 
-  let isOwner = true;
+  let isCooperator = true;
   if (type === "directory") {
     const dir = data as DirectoryItem;
-    isOwner = dir.creator === userProfile?.id;
+    isCooperator = !!dir.cooperators.includes(userProfile?.id || "");
   }
 
   useEffect(() => {
@@ -112,15 +113,16 @@ export default function ShareDialog(props: ShareDialogProps) {
       }
       setChecked(!checked);
     } catch (err) {
-      mdui.snackbar({ message: "Failed to change visibility", buttonText: "close", closeOnOutsideClick: false });
+      mdui.snackbar({
+        message: "Failed to change visibility",
+        buttonText: "close",
+        closeOnOutsideClick: false,
+      });
     }
     setIsChangingState(false);
   };
 
-  const handleCopy = async (link: string) => {
-    clipboard.writeText(link);
-    mdui.snackbar({ message: "Copied successfully", buttonText: "close", closeOnOutsideClick: false });
-  };
+
 
   const shareLinkBox = (link: string) => (
     <div>
@@ -137,7 +139,7 @@ export default function ShareDialog(props: ShareDialogProps) {
       <button
         style={{ marginTop: 16 }}
         className="mdui-btn mdui-btn-dense mdui-color-theme-accent"
-        onClick={() => handleCopy(link)}
+        onClick={() => copy(link)}
       >
         Copy
       </button>
@@ -150,7 +152,9 @@ export default function ShareDialog(props: ShareDialogProps) {
       <div className="mdui-dialog-content" style={{ padding: 0 }}>
         {type === "file" && (
           <div style={{ padding: 24, paddingTop: 0 }}>
-            {shareLinkBox(generateShareLinkForFile((data as FileItem).cid, data.name))}
+            {shareLinkBox(
+              generateShareLinkForFile((data as FileItem).cid, data.name)
+            )}
           </div>
         )}
         {type === "directory" && (
@@ -189,7 +193,7 @@ export default function ShareDialog(props: ShareDialogProps) {
                       className="mdui-textfield-input"
                       type="text"
                       value={CoInvitee}
-                      disabled={!isOwner}
+                      disabled={!isCooperator}
                     ></input>
                     {CoErrMsg && (
                       <div className="mdui-textfield-error">{CoErrMsg}</div>
@@ -197,9 +201,9 @@ export default function ShareDialog(props: ShareDialogProps) {
                     {CoMsg && (
                       <div className="mdui-textfield-helper">{CoMsg}</div>
                     )}
-                    {!isOwner && (
+                    {!isCooperator && (
                       <div className="mdui-textfield-helper">
-                        Only owner can invite cooperator
+                        Only cooperator can invite cooperator
                       </div>
                     )}
                   </div>
@@ -248,7 +252,7 @@ export default function ShareDialog(props: ShareDialogProps) {
                               type="checkbox"
                               checked={checked}
                               onClick={handleChangeVisibility}
-                              disabled={!isOwner}
+                              disabled={!isCooperator}
                             />
                             <i className="mdui-switch-icon"></i>
                           </>
@@ -264,7 +268,7 @@ export default function ShareDialog(props: ShareDialogProps) {
                     </div>
                   </div>
                   {checked && shareLinkBox(generateShareLinkForDir(key || ""))}
-                  {(checked && isOwner) || (
+                  {(checked && isCooperator) || (
                     <div>
                       <div
                         className={`mdui-textfield ${
@@ -307,7 +311,8 @@ export default function ShareDialog(props: ShareDialogProps) {
                           "Add"
                         )}
                       </button>
-                      {showShareLinkBox && shareLinkBox}
+                      {showShareLinkBox &&
+                        shareLinkBox(generateShareLinkForDir(key || ""))}
                     </div>
                   )}
                 </>

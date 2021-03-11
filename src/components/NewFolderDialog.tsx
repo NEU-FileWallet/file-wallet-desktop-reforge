@@ -50,7 +50,6 @@ export default function NewFolderDialog(props: NewFolderDialogProps) {
   }, [loading, newFolder, folderVisibility]);
 
   const onPressKey = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    console.log(event.key);
     if (event.key === "Enter") {
       handleOk();
     }

@@ -82,7 +82,7 @@ function Dialog(props: DialogProps, ref: React.Ref<DialogIns>) {
   }, [close, dialog, visible]);
 
   return (
-    <div className="mdui-dialog" id={id} style={style}>
+    <div className="mdui-dialog" id={id} style={{height: 'fit-content',...style}}>
       {title && <div className="mdui-dialog-title">{title}</div>}
       {visible && children}
     </div>

@@ -17,34 +17,12 @@ export default function PrivateFolder(props: PrivateFolderProps) {
     }
   };
 
-  const handleImportFromLink = async (
-    directoryKey: string,
-    linkData: ItemMeta
-  ) => {
-    const database = await getDatabase();
-
-    if (linkData.type === "Directory" && linkData.key) {
-      await database.subscribe(linkData.key);
-      await database.addDirectories(directoryKey, [linkData.key]);
-    } else if (linkData.type === "File" && linkData.cid) {
-      await database.addFile(directoryKey, [
-        {
-          cid: linkData.cid,
-          cipher: "",
-          name: linkData.name || "--",
-          createDate: Math.ceil(new Date().valueOf() / 1000),
-        },
-      ]);
-    }
-  };
-
   return (
     <>
       <FileBrowser
         rootKey={userProfile?.private}
         importFile={handleImportFile}
         newFolder={newFolder}
-        importFromLink={handleImportFromLink}
       />
     </>
   );

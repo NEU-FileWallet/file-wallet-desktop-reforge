@@ -1,7 +1,8 @@
 import { execSync } from "child_process";
-import { ipcRenderer } from "electron";
+import { clipboard, ipcRenderer } from "electron";
 import { lstatSync } from "fs";
 import { Base64 } from "js-base64";
+import mdui from "mdui";
 import { parse } from "path";
 import store from "../store/store";
 import { AppConfig, getConfig } from "./config";
@@ -163,7 +164,7 @@ export function monitorNetworkState() {
   }, 5000);
 }
 
-export async function boostrapCheck(config?: AppConfig) {
+export async function bootstrapCheck(config?: AppConfig) {
   if (!config) {
     config = await getConfig()
   }
@@ -183,3 +184,12 @@ export async function boostrapCheck(config?: AppConfig) {
 
   return result
 }
+
+export const copy = async (link: string) => {
+  clipboard.writeText(link);
+  mdui.snackbar({
+    message: "Copied",
+    buttonText: "close",
+    closeOnOutsideClick: false,
+  });
+};

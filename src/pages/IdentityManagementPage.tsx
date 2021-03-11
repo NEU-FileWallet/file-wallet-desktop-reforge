@@ -22,7 +22,8 @@ export default function IdentityManagementPage() {
 
   const handleAddIdentity = async (label?: string, content?: string) => {
     if (!label || !content) return
-    addIdentity(label, content)
+    await addIdentity(label, content)
+    setIdentityDialogVis(false)
   }
 
   return (

@@ -64,6 +64,7 @@ export default function ImportDialog(props: ImportDialogProps) {
       ref={dialogRef}
       style={{ width: 500 }}
       onClose={handleOnClose}
+      persistent
       {...otherProps}
     >
       <div className="mdui-dialog-title">Import from link</div>
@@ -83,7 +84,7 @@ export default function ImportDialog(props: ImportDialogProps) {
         </div>
         {linkData && (
           <div>
-            <div>Type: File</div>
+            <div>Type: {linkData.type}</div>
             {linkData.type === "File" && (
               <div>
                 <div>Name: {linkData.name}</div>

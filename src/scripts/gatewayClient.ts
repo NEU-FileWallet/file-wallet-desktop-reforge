@@ -66,7 +66,7 @@ export default class FabricGatewayClient implements FabricClient {
 
   private invoke(operation: OperationCodeEnum, data: any) {
     return new Promise((resolve, reject) => {
-      if (!this.ws || this.ws.readyState !== this.ws.OPEN) {
+      if ((!this.ws || this.ws.readyState !== this.ws.OPEN) && !this.autoReconnect) {
         reject("no connection");
         return;
       }

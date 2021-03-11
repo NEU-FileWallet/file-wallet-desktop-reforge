@@ -1,20 +1,12 @@
-import {
-  lstatSync,
-  readdirSync,
-  readFileSync,
-} from "fs";
+import { lstatSync, readdirSync, readFileSync } from "fs";
 import { join, parse } from "path";
 import { useCallback, useEffect, useState } from "react";
 import { getConfig, updateConfig } from "./config";
-import FabricDatabase, { rebuildDatabase } from "./fabricDatabase";
-import store from '../store/store'
+import FabricDatabase, { getDatabase, rebuildDatabase } from "./fabricDatabase";
+import store from "../store/store";
 
 export async function testIdentity(username: string, identity: any) {
-  const {
-    channelID,
-    ccp,
-    gatewayURL,
-  } = await getConfig();
+  const { channelID, ccp, gatewayURL } = await getConfig();
   const options = {
     channelID,
     ccp,
@@ -46,36 +38,46 @@ const reloadUserProfile = async () => {
   const database = await rebuildDatabase();
   const userProfile = await database.readUserProfile();
   store.dispatch({ type: "updateUserProfile", payload: userProfile });
-}
-
-export const changeIdentity = async (label: string) => {
-  const { identities } = await getConfig()
-  identities?.forEach((identity) => identity.enable = identity.label === label)
-  await updateConfig({ identities })
-  await reloadUserProfile()
 };
 
-export async function addIdentity(label: string, identity: any, enable = false) {
+export const changeIdentity = async (label: string) => {
+  const database = await getDatabase();
   const { identities } = await getConfig();
-  const existedIdentity = identities.find(i => i.label === label)
+  identities?.forEach(
+    (identity) => (identity.enable = identity.label === label)
+  );
+  await updateConfig({ identities });
+  await database.initiateUserProfile(label);
+  await reloadUserProfile();
+};
+
+export async function addIdentity(
+  label: string,
+  identity: any,
+  enable = false
+) {
+  const { identities } = await getConfig();
+  const existedIdentity = identities.find((i) => i.label === label);
   if (existedIdentity) {
-    existedIdentity.content = JSON.parse(identity)
+    existedIdentity.content = JSON.parse(identity);
     if (enable) {
-      existedIdentity.enable = true
+      existedIdentity.enable = true;
     }
 
     if (existedIdentity.enable) {
-      await reloadUserProfile()
+      await reloadUserProfile();
     }
   } else {
-    identities.push({ label, content: JSON.parse(identity), enable })
+    identities.push({ label, content: JSON.parse(identity), enable });
   }
-  updateConfig({ identities })
+  updateConfig({ identities });
 }
 
 export async function removeIdentity(label: string) {
   const { identities } = await getConfig();
-  await updateConfig({ identities: identities.filter(i => i.label !== label) })
+  await updateConfig({
+    identities: identities.filter((i) => i.label !== label),
+  });
 }
 interface X509Identity {
   credentials: {

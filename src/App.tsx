@@ -14,10 +14,10 @@ import { ipcRenderer } from "electron";
 import DownloadPage from "./pages/DownloadPage";
 import ConfigPage from "./pages/ConfigPage";
 import IdentityManagementPage from "./pages/IdentityManagementPage";
-import { boostrapCheck, monitorNetworkState } from "./scripts/utils";
+import { bootstrapCheck, monitorNetworkState } from "./scripts/utils";
 import { getDatabase } from "./scripts/fabricDatabase";
 import BootstrapPage from "./pages/BootstrapPage";
-import { useAppConfig } from "./scripts/config";
+import { getEnabledIdentity, useAppConfig } from "./scripts/config";
 import store from "./store/store";
 import LoadingDialog from "./components/LoadingDialog";
 
@@ -40,7 +40,7 @@ const drawerItems: AppDrawerItem[] = [
 ];
 
 const initiateIPFS = async () => {
-  console.log('Initiating IPFS')
+  console.log("Initiating IPFS");
   const result = await ipcRenderer.invoke("ping-ipfs");
   const config = store.getState().config;
   if (!result && config) {
@@ -50,9 +50,12 @@ const initiateIPFS = async () => {
 };
 
 const initiateFabric = async () => {
-  console.log('Initiating Fabric')
+  console.log("Initiating Fabric");
+  const config = store.getState().config;
+  const identity = getEnabledIdentity(config);
+  if (!identity) throw new Error("no enabled identity");
   const database = await getDatabase();
-  const profile = await database.readUserProfile();
+  const profile = await database.initiateUserProfile(identity.label);
   store.dispatch({ type: "updateUserProfile", payload: profile });
 };
 
@@ -60,7 +63,7 @@ function App() {
   const [loadingContent] = useState<string>("Initializing");
   const ref = useRef<AppLoadingIns>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [showBoostrapPage, setShowBoostrapPage] = useState(false);
+  const [showBootstrapPage, setShowBootstrapPage] = useState(false);
   const [missingOptions, setMissionOption] = useState<{
     showIdentity?: boolean;
     showIPFS?: boolean;
@@ -69,36 +72,36 @@ function App() {
   const [config] = useAppConfig();
 
   const bootstrap = async () => {
-    const { profile, identity, IPFS } = await boostrapCheck();
-    console.log(profile, identity, IPFS)
+    const { profile, identity, IPFS } = await bootstrapCheck();
+    console.log(profile, identity, IPFS);
     if (!profile || !identity || !IPFS) {
       setMissionOption({
         showCCP: !profile,
         showIPFS: !IPFS,
         showIdentity: !identity,
       });
-      setShowBoostrapPage(true);
+      setShowBootstrapPage(true);
     } else {
-      console.log('Booststrap check pass')
+      console.log("Bootstrap check pass");
       await Promise.all([initiateIPFS(), initiateFabric()]).finally(() => {
         monitorNetworkState();
       });
       ref.current?.dismiss();
-      setShowBoostrapPage(false);
+      setShowBootstrapPage(false);
     }
 
     setIsLoading(false);
   };
 
   const handleOnNext = async () => {
-    setIsLoading(true)
-    console.log('next')
+    setIsLoading(true);
+    console.log("next");
     await bootstrap();
   };
 
   useEffect(() => {
-    ref.current?.show();
     if (!config) {
+      ref.current?.show();
       bootstrap().finally(() => {
         ref.current?.dismiss();
       });
@@ -108,10 +111,10 @@ function App() {
   return (
     <div className="app">
       <LoadingDialog visible={isLoading} title="Loading"></LoadingDialog>
-      {showBoostrapPage && (
+      {showBootstrapPage && (
         <BootstrapPage onNext={handleOnNext} {...missingOptions} />
       )}
-      {showBoostrapPage || (
+      {showBootstrapPage || (
         <>
           <AppLoading ref={ref} content={loadingContent} />
           <BrowserRouter>
