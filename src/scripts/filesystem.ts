@@ -5,6 +5,7 @@ import { join } from "path";
 import { ipcRenderer, remote } from "electron";
 import { getDatabase } from "./fabricDatabase";
 import { FileMeta } from "./chaincodeInterface";
+import { platform } from "os";
 
 export async function newFolder(
   currentKey: string,
@@ -42,16 +43,34 @@ export function importFolders(parentKey: string, folders: string[]) {
 }
 
 export const importFromFS = async (key: string) => {
-  const result = await remote.dialog.showOpenDialog(remote.getCurrentWindow(), {
-    properties: [
-      "openFile",
-      "openDirectory",
-      "multiSelections",
-      "createDirectory",
-      "showHiddenFiles",
-    ],
-    message: "Select files/folders.",
-  });
+  let result: any = {
+    folders: [],
+    files: [],
+  };
+
+  if (platform() === "win32") {
+    result = await remote.dialog.showOpenDialog(remote.getCurrentWindow(), {
+      properties: [
+        "openFile",
+        "multiSelections",
+        "createDirectory",
+        "showHiddenFiles",
+      ],
+      message: "Select files/folders.",
+    });
+  } else {
+    result = await remote.dialog.showOpenDialog(remote.getCurrentWindow(), {
+      properties: [
+        "openFile",
+        "openDirectory",
+        "multiSelections",
+        "createDirectory",
+        "showHiddenFiles",
+      ],
+      message: "Select files/folders.",
+    });
+  }
+
   const { folders, files } = await classifySelectionResult(result);
   console.log(folders, files);
   await Promise.all([importFiles(key, files), importFolders(key, folders)]);

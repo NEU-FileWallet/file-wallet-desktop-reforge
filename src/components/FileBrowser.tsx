@@ -25,6 +25,7 @@ import LoadingDialog from "./LoadingDialog";
 import { getDatabase } from "../scripts/fabricDatabase";
 import { useSelector } from "react-redux";
 import { AppState } from "../store/reducer";
+import { importFromFS } from "../scripts/filesystem";
 
 export type BrowserMode = "personal" | "share" | "subscriptions";
 interface ModeFunction {
@@ -76,8 +77,6 @@ export interface FileBrowserProps {
   mode?: BrowserMode;
   categories?: { text: string; value: string }[];
   folderFilter?: (directory: DirectoryItem) => boolean;
-  newFolder?: (currentKey: string, name: string) => Promise<any>;
-  importFile?: (key: string) => Promise<any>;
 }
 
 export function FileBrowser(props: FileBrowserProps) {
@@ -85,7 +84,6 @@ export function FileBrowser(props: FileBrowserProps) {
     mode = "personal",
     prefix,
     rootKey,
-    importFile,
     folderFilter = () => true,
   } = props;
   const [pointer, setPointer] = useState(0);
@@ -267,13 +265,11 @@ export function FileBrowser(props: FileBrowserProps) {
   const currentRecord = stack[pointer];
 
   const handleImportFile = async () => {
-    if (importFile) {
-      setLoadingDialogText("Importing");
-      setLoadingDialogVis(true);
-      await importFile(currentRecord.key);
-      await refreshFilesAndDirs(currentRecord.key);
-      setLoadingDialogVis(false);
-    }
+    setLoadingDialogText("Importing");
+    setLoadingDialogVis(true);
+    await importFromFS(currentRecord.key);
+    await refreshFilesAndDirs(currentRecord.key);
+    setLoadingDialogVis(false);
   };
 
   const handleImportFromLink = async (link: ItemMeta) => {

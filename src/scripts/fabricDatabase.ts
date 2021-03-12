@@ -119,6 +119,7 @@ export default class FabricDatabase implements ChaincodeInterface {
       "InitiateUserProfile",
       name
     );
+    console.log(userProfile)
     if (userProfile) {
       return userProfile;
     } else {

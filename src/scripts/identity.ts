@@ -47,7 +47,16 @@ export const changeIdentity = async (label: string) => {
     (identity) => (identity.enable = identity.label === label)
   );
   await updateConfig({ identities });
-  await database.initiateUserProfile(label);
+  let profile = undefined;
+  try {
+    profile = await database.readUserProfile();
+    if (!profile) {
+      profile = await database.initiateUserProfile(label);
+    }
+  } catch (err) {
+    console.log(err);
+    profile = await database.initiateUserProfile(label);
+  }
   await reloadUserProfile();
 };
 
