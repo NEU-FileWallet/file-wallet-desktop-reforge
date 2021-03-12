@@ -26,45 +26,55 @@ export interface FileListProps {
   directories?: DirectoryItem[];
   files?: FileItem[];
   filter?: (items: FileListItem) => boolean;
+  isCooperator?: boolean
 }
 
-const getMenuOption = (item: FileListItem) => {
-  return [
+const getMenuOption = (item: FileListItem, canUpdate: boolean = true) => {
+  const menus = [
     {
       icon: "arrow_downward",
       text: "Download",
       onClick: item.onDownload,
     },
-    {
-      icon: "delete",
-      text: "Delete",
-      onClick: item.onDelete,
-    },
-    {
-      icon: "edit",
-      text: "Rename",
-      onClick: item.onUpdate,
-    },
+
     {
       icon: "visibility",
       text: "Inspect",
       onClick: item.inspect,
     },
-    {
-      icon: "share",
-      text: "Share",
-      onClick: item.share,
-    },
+
     {
       icon: "content_copy",
       text: "Copy",
       onClick: item.copy,
     },
   ];
+
+  if (canUpdate) {
+    return menus.concat([
+      {
+        icon: "share",
+        text: "Share",
+        onClick: item.share,
+      },
+      {
+        icon: "edit",
+        text: "Rename",
+        onClick: item.onUpdate,
+      },
+      {
+        icon: "delete",
+        text: "Delete",
+        onClick: item.onDelete,
+      },
+    ]);
+  }
+
+  return menus;
 };
 
 export default function FileBrowserList(props: FileListProps) {
-  const { directories, files, filter = () => true } = props;
+  const { directories, files, filter = () => true, isCooperator = false } = props;
 
   if (!directories || !files) {
     return <Empty style={{ paddingBottom: 96 }} />;
@@ -93,7 +103,7 @@ export default function FileBrowserList(props: FileListProps) {
             <td>--</td>
             <td>
               {directory.name === ".." || (
-                <OperationMenu items={getMenuOption(directory)} />
+                <OperationMenu items={getMenuOption(directory, isCooperator)} />
               )}
             </td>
           </tr>
@@ -110,7 +120,7 @@ export default function FileBrowserList(props: FileListProps) {
             </td>
             <td>{humanFileSize(file.size) || "--"}</td>
             <td>
-              <OperationMenu items={getMenuOption(file)} />
+              <OperationMenu items={getMenuOption(file, isCooperator)} />
             </td>
           </tr>
         ))}
