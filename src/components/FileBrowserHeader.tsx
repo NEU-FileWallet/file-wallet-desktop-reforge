@@ -31,7 +31,6 @@ const getOperationButtons = (props: FileBrowserHeaderProps) => {
     showRefresh = true,
   } = props;
   const operationButtons = [];
-
   if (showUpload) {
     operationButtons.push({
       icon: "cloud_upload",

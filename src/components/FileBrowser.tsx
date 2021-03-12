@@ -36,6 +36,8 @@ interface ModeFunction {
 const modeFunctionMap: { [key in BrowserMode]: ModeFunction } = {
   personal: {
     showImport: true,
+    showCreateFolder: true,
+    showUpload: true,
   },
   share: {
     showUpload: true,
@@ -105,7 +107,7 @@ export function FileBrowser(props: FileBrowserProps) {
   const [renameTarget, setRenameTarget] = useState<ItemDetail>();
   const [loadingDialogVis, setLoadingDialogVis] = useState(false);
   const [loadingDialogText, setLoadingDialogText] = useState("");
-  const userProfile = useSelector((state:AppState) => state.userProfile)
+  const userProfile = useSelector((state: AppState) => state.userProfile);
 
   const goBack = () => {
     if (stack.length <= 1) {
@@ -275,25 +277,28 @@ export function FileBrowser(props: FileBrowserProps) {
   };
 
   const handleImportFromLink = async (link: ItemMeta) => {
-      const database = await getDatabase();
-      if (link.type === "Directory" && link.key) {
-        const dir = await database.readDirectory(link.key)
-        if (!dir.cooperators.find(c => c === userProfile?.id) && !dir.subscribers.find(s => s.id === userProfile?.id)) { 
-          await database.subscribe(link.key);
-        }
-        await database.addDirectories(currentRecord.key, [link.key]);
-      } else if (link.type === "File" && link.cid) {
-        await database.addFile(currentRecord.key, [
-          {
-            cid: link.cid,
-            cipher: "",
-            name: link.name || "--",
-            createDate: Math.ceil(new Date().valueOf() / 1000),
-          },
-        ]);
+    const database = await getDatabase();
+    if (link.type === "Directory" && link.key) {
+      const dir = await database.readDirectory(link.key);
+      if (
+        !dir.cooperators.find((c) => c === userProfile?.id) &&
+        !dir.subscribers.find((s) => s.id === userProfile?.id)
+      ) {
+        await database.subscribe(link.key);
       }
-      await refreshFilesAndDirs(currentRecord.key);
-      setImportDialogVis(false);
+      await database.addDirectories(currentRecord.key, [link.key]);
+    } else if (link.type === "File" && link.cid) {
+      await database.addFile(currentRecord.key, [
+        {
+          cid: link.cid,
+          cipher: "",
+          name: link.name || "--",
+          createDate: Math.ceil(new Date().valueOf() / 1000),
+        },
+      ]);
+    }
+    await refreshFilesAndDirs(currentRecord.key);
+    setImportDialogVis(false);
   };
 
   const handleAddCooperator = async (target: string, id: string) => {
@@ -369,6 +374,10 @@ export function FileBrowser(props: FileBrowserProps) {
   };
 
   const { showCreateFolder, showImport, showUpload } = modeFunctionMap[mode];
+  let isCooperator = false;
+  if (userProfile?.id) {
+    isCooperator = currentDir?.cooperators.includes(userProfile.id) ?? false;
+  }
 
   const finalFiles = files.map((file) => ({
     ...file,
@@ -387,9 +396,9 @@ export function FileBrowser(props: FileBrowserProps) {
       <FileBrowserHeader
         importFile={handleImportFile}
         newFolder={showNewFolderDialog}
-        showCreateFolder={showCreateFolder}
-        showImport={showImport}
-        showUpload={showUpload}
+        showCreateFolder={!!showCreateFolder && isCooperator}
+        showImport={!!showImport && isCooperator}
+        showUpload={!!showUpload && isCooperator}
         onKeywordChange={(keyword: string) => {
           setKeyword(keyword);
         }}
