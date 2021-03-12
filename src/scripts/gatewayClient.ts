@@ -51,7 +51,9 @@ export default class FabricGatewayClient implements FabricClient {
       this.ws.onmessage = (data) => {
         const message = JSON.parse(data.data.toString() ?? "{}");
         const handler = this.listeners[message.txID];
-        handler(message);
+        if (handler) {
+          handler(message);
+        }
       };
     });
   }
@@ -66,7 +68,11 @@ export default class FabricGatewayClient implements FabricClient {
 
   private invoke(operation: OperationCodeEnum, data: any) {
     return new Promise((resolve, reject) => {
-      if ((!this.ws || this.ws.readyState !== this.ws.OPEN) && !this.autoReconnect) {
+      // eslint-disable-next-line no-mixed-operators
+      if (
+        !this.ws ||
+        (this.ws.readyState !== this.ws.OPEN && !this.autoReconnect)
+      ) {
         reject("no connection");
         return;
       }
@@ -97,15 +103,17 @@ export default class FabricGatewayClient implements FabricClient {
         };
       };
 
-      if (this.ws?.readyState !== this.ws?.OPEN && this.autoReconnect) {
+      if (this.ws?.readyState === this.ws?.CLOSED && this.autoReconnect) {
         this.connect()
           .then(() => {
             job();
           })
           .catch((err) => reject(err));
+      } else if (this.ws.readyState === this.ws.CONNECTING) {
+        reject('connecting')
+      } else {
+        job()
       }
-
-      job();
     });
   }
 
