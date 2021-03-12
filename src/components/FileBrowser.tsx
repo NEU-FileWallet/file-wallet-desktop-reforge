@@ -420,6 +420,7 @@ export function FileBrowser(props: FileBrowserProps) {
           filter={filter}
           files={finalFiles}
           directories={subDirectories}
+          isCooperator={isCooperator}
         />
       </div>
       {detail && detailVisible && (
