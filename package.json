@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "main": "build/electron/main.js",
+  "homepage": ".",
   "devDependencies": {
     "@types/electron-devtools-installer": "^2.2.0",
     "@types/jest": "^26.0.20",
