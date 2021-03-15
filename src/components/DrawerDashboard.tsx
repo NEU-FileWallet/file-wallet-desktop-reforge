@@ -14,6 +14,13 @@ export default function DrawerDashboard() {
         flexDirection: "column",
       }}
     >
+      <div style={{ marginBottom: 20 }}>
+        <div style={{ textAlign: "center", fontSize: 24 }}>
+          {" "}
+          {states.peerAmount}{" "}
+        </div>
+        <div style={{ textAlign: "center" }}> Connected peers </div>
+      </div>
       <div>
         <div
           style={{ backgroundColor: states.IPFS ? "green" : "red" }}

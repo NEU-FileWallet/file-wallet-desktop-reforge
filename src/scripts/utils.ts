@@ -59,8 +59,9 @@ export function humanFileSize(bytes?: number, si = false, dp = 1) {
 
 export function formatDate(timestamp: number) {
   const date = new Date(timestamp);
-  return `${date.getFullYear()}-${date.getMonth() + 1
-    }-${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+  return `${date.getFullYear()}-${
+    date.getMonth() + 1
+  }-${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
 }
 
 export const getFileIcon = (
@@ -131,18 +132,19 @@ export function processResponse(response: string) {
 
 export function monitorNetworkState() {
   const updateState = (state: any) => {
-    store.dispatch({ type: 'updateNetwork', payload: state })
-  }
+    store.dispatch({ type: "updateNetwork", payload: state });
+  };
   const pingIPFS = async () => {
     try {
-      const isIpfsAlive = await ipcRenderer.invoke("ping-ipfs");
+      const peerAmount = await ipcRenderer.invoke("ping-ipfs");
       updateState({
-        IPFS: isIpfsAlive,
-      })
+        IPFS: peerAmount !== undefined,
+        peerAmount: peerAmount,
+      });
     } catch (error) {
       updateState({
         IPFS: false,
-      })
+      });
     }
   };
   const pingFabric = async () => {
@@ -151,11 +153,11 @@ export function monitorNetworkState() {
       const isFabricAlive = await database.readUserProfile();
       updateState({
         FABRIC: !!isFabricAlive,
-      })
+      });
     } catch (error) {
       updateState({
         FABRIC: false,
-      })
+      });
     }
   };
 
@@ -166,23 +168,23 @@ export function monitorNetworkState() {
 
 export async function bootstrapCheck(config?: AppConfig) {
   if (!config) {
-    config = await getConfig()
+    config = await getConfig();
   }
 
-  const { ccp, identities, IPFSPath } = config
+  const { ccp, identities, IPFSPath } = config;
   const result = {
     profile: !!ccp,
-    identity: !!identities?.find(i => i.enable),
-    IPFS: false
-  }
+    identity: !!identities?.find((i) => i.enable),
+    IPFS: false,
+  };
   try {
-    execSync(`${IPFSPath} version`)
-    result.IPFS = true
+    execSync(`${IPFSPath} version`);
+    result.IPFS = true;
   } catch (e) {
-    console.log(e)
+    console.log(e);
   }
 
-  return result
+  return result;
 }
 
 export const copy = async (link: string) => {

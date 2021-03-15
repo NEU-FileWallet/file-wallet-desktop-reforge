@@ -35,10 +35,10 @@ export interface DownloadFileProps {
 
 async function pingIPFS() {
   try {
-    await client.swarm.peers();
-    return true;
+    const list = await client.swarm.peers();
+    return list.length;
   } catch (error) {
-    return false;
+    return undefined;
   }
 }
 
@@ -179,8 +179,8 @@ ipcMain.handle("get-file-size", async (event, cid: string) => {
   try {
     const { data } = await axios.post(`${baseURL}/object/stat`, undefined, {
       params: { arg: cid },
-      timeout: 10000
-    });;
+      timeout: 10000,
+    });
     return data.CumulativeSize;
   } catch {
     return undefined;

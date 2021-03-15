@@ -1,21 +1,23 @@
 import { UserProfile } from "../scripts/chaincodeInterface";
-import { AppConfig } from '../scripts/config'
+import { AppConfig } from "../scripts/config";
 
 export interface NetworkState {
   IPFS: boolean;
   FABRIC: boolean;
+  peerAmount: number;
 }
 
 export interface AppState {
   userProfile?: UserProfile;
   network: NetworkState;
-  config?: AppConfig
+  config?: AppConfig;
 }
 
 export const initialState: AppState = {
   network: {
     IPFS: false,
     FABRIC: false,
+    peerAmount: 0,
   },
 };
 
@@ -32,21 +34,21 @@ export function AppReducer(
     case "updateUserProfile":
       return {
         ...state,
-        userProfile: action.payload
+        userProfile: action.payload,
       };
     case "updateNetwork":
       return {
         ...state,
         network: {
           ...state.network,
-          ...action.payload
-        }
-      }
+          ...action.payload,
+        },
+      };
     case "updateConfig":
       return {
         ...state,
-        config: { ...state.config, ...action.payload }
-      }
+        config: { ...state.config, ...action.payload },
+      };
   }
 
   return state;
