@@ -5,11 +5,13 @@ import { platform } from "os";
 import { join, parse } from "path";
 import http from "http";
 import { spawnSync } from "child_process";
+import axios from "axios";
 
 const IpfsHttpClient = require("ipfs-http-client");
+const baseURL = "http://127.0.0.1:5001/api/v0";
 
 export let client: any = IpfsHttpClient({
-  url: "/ip4/127.0.0.1/tcp/5001",
+  url: baseURL,
   agent: new http.Agent({
     maxSockets: 8864,
     timeout: 10000,
@@ -18,6 +20,7 @@ export let client: any = IpfsHttpClient({
 });
 
 export let ipfsProcess: ChildProcess | undefined;
+let IPFSPath = undefined;
 
 export enum DownloadStatus {
   Downloading = "Downloading",
@@ -63,14 +66,15 @@ ipcMain.handle("init-Ipfs", (event, path) => {
             console.log(data.toString());
             if (data.toString().includes("Daemon is ready")) {
               console.log("Launched a new ipfs instance.");
+              IPFSPath = path;
               resolve(undefined);
             }
           });
 
           ipfsProcess.stderr?.on("data", (data) => {
             if (data.toString().includes("please run: 'ipfs init'")) {
-              spawnSync(path, ['init'])
-              job()
+              spawnSync(path, ["init"]);
+              job();
             }
           });
         };
@@ -173,8 +177,11 @@ ipcMain.handle("stop-ipfs", () => {
 
 ipcMain.handle("get-file-size", async (event, cid: string) => {
   try {
-    const stat = await client.object.stat(cid);
-    return stat.CumulativeSize;
+    const { data } = await axios.post(`${baseURL}/object/stat`, undefined, {
+      params: { arg: cid },
+      timeout: 10000
+    });;
+    return data.CumulativeSize;
   } catch {
     return undefined;
   }
