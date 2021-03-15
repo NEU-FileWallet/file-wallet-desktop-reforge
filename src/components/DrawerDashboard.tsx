@@ -27,7 +27,7 @@ export default function DrawerDashboard() {
           className="circle"
         ></div>
         <span style={{ marginLeft: 10 }}>
-          IPFS {states.IPFS ? "is ready" : "is not ready"}
+          IPFS: {states.IPFS ? "connected" : "disconnected"}
         </span>
       </div>
       <div style={{ marginTop: 10 }}>
@@ -36,7 +36,7 @@ export default function DrawerDashboard() {
           className="circle"
         ></div>
         <span style={{ marginLeft: 10 }}>
-          FABRIC {states.FABRIC ? "is ready" : "is not ready"}
+          FABRIC: {states.FABRIC ? "connected" : "disconnected"}
         </span>
       </div>
     </div>
