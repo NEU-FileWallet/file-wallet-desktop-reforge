@@ -3,10 +3,19 @@ import { app, ipcMain } from "electron";
 import { createReadStream, createWriteStream } from "fs";
 import { platform } from "os";
 import { join, parse } from "path";
+import http from "http";
+import { spawnSync } from "child_process";
 
 const IpfsHttpClient = require("ipfs-http-client");
 
-export let client: any = IpfsHttpClient("/ip4/127.0.0.1/tcp/5001");
+export let client: any = IpfsHttpClient({
+  url: "/ip4/127.0.0.1/tcp/5001",
+  agent: new http.Agent({
+    maxSockets: 8864,
+    timeout: 10000,
+    keepAlive: false,
+  }),
+});
 
 export let ipfsProcess: ChildProcess | undefined;
 
@@ -33,30 +42,42 @@ async function pingIPFS() {
 ipcMain.handle("init-Ipfs", (event, path) => {
   console.log("Initializing ipfs");
 
-  return new Promise(async (resolve, reject) => {
-    const alive = await pingIPFS();
+  return new Promise((resolve, reject) => {
+    pingIPFS().then((alive) => {
+      if (alive) {
+        console.log("Connect ipfs successfully");
+        resolve(undefined);
+      } else {
+        console.log(
+          "Fail to connect ipfs instance, attempting to launch a new one."
+        );
 
-    if (alive) {
-      console.log("Connect ipfs successfully");
-      resolve(undefined);
-    } else {
-      console.log(
-        "Fail to connect ipfs instance, attempting to launch a new one."
-      );
-      ipfsProcess = spawn(path, ["daemon"]);
+        const job = () => {
+          ipfsProcess = spawn(path, ["daemon"]);
 
-      ipfsProcess.once("error", (err) => {
-        reject(err);
-      });
+          ipfsProcess.once("error", (err) => {
+            reject(err);
+          });
 
-      ipfsProcess.stdout?.on("data", (data: Buffer) => {
-        console.log(data.toString());
-        if (data.toString().includes("Daemon is ready")) {
-          console.log("Launched a new ipfs instance.");
-          resolve(undefined);
-        }
-      });
-    }
+          ipfsProcess.stdout?.on("data", (data: Buffer) => {
+            console.log(data.toString());
+            if (data.toString().includes("Daemon is ready")) {
+              console.log("Launched a new ipfs instance.");
+              resolve(undefined);
+            }
+          });
+
+          ipfsProcess.stderr?.on("data", (data) => {
+            if (data.toString().includes("please run: 'ipfs init'")) {
+              spawnSync(path, ['init'])
+              job()
+            }
+          });
+        };
+
+        job();
+      }
+    });
   });
 });
 
@@ -145,10 +166,10 @@ ipcMain.handle("ping-ipfs", () => {
   return pingIPFS();
 });
 
-ipcMain.handle('stop-ipfs', () => {
-  const killed = ipfsProcess?.kill()
-  if (!killed) throw new Error('Can not kill ipfs process')
-})
+ipcMain.handle("stop-ipfs", () => {
+  const killed = ipfsProcess?.kill();
+  if (!killed) throw new Error("Can not kill ipfs process");
+});
 
 ipcMain.handle("get-file-size", async (event, cid: string) => {
   try {
