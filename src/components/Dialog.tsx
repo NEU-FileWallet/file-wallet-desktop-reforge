@@ -76,6 +76,7 @@ function Dialog(props: DialogProps, ref: React.Ref<DialogIns>) {
 
     if (visible) {
       dialog.open();
+      dialog.handleUpdate()
     } else {
       close()
     }

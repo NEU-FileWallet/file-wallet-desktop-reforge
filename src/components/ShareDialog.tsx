@@ -58,6 +58,7 @@ export default function ShareDialog(props: ShareDialogProps) {
 
   useEffect(() => {
     setShowShareLinkBox(false);
+    ref.current?.update()
   }, [index]);
 
   useEffect(() => {
