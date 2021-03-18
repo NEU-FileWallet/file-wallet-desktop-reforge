@@ -58,7 +58,7 @@ export default function ShareDialog(props: ShareDialogProps) {
 
   useEffect(() => {
     setShowShareLinkBox(false);
-    ref.current?.update()
+    ref.current?.update();
   }, [index]);
 
   useEffect(() => {
@@ -123,8 +123,6 @@ export default function ShareDialog(props: ShareDialogProps) {
     setIsChangingState(false);
   };
 
-
-
   const shareLinkBox = (link: string) => (
     <div>
       <div>Share link:</div>
@@ -137,13 +135,15 @@ export default function ShareDialog(props: ShareDialogProps) {
       >
         {link}
       </div>
-      <button
-        style={{ marginTop: 16 }}
-        className="mdui-btn mdui-btn-dense mdui-color-theme-accent"
-        onClick={() => copy(link)}
-      >
-        Copy
-      </button>
+      <div className="mdui-dialog-actions">
+        <button
+          style={{ marginTop: 16 }}
+          className="mdui-btn mdui-btn-dense mdui-color-theme-accent"
+          onClick={() => copy(link)}
+        >
+          Copy
+        </button>
+      </div>
     </div>
   );
 
@@ -178,59 +178,64 @@ export default function ShareDialog(props: ShareDialogProps) {
                 Subscription
               </a>
             </div>
-            <div style={{ padding: 24, paddingTop: 0 }}>
+            <div>
               {index === 0 && (
                 <div>
-                  <div
-                    className={`mdui-textfield ${
-                      CoErrMsg ? "mdui-textfield-invalid" : ""
-                    }`}
-                  >
-                    <label className="mdui-textfield-label">Invitee ID</label>
-                    <input
-                      onChange={(event) => {
-                        setCoInvitee(event.currentTarget.value);
-                      }}
-                      className="mdui-textfield-input"
-                      type="text"
-                      value={CoInvitee}
-                      disabled={!isCooperator}
-                    ></input>
-                    {CoErrMsg && (
-                      <div className="mdui-textfield-error">{CoErrMsg}</div>
-                    )}
-                    {CoMsg && (
-                      <div className="mdui-textfield-helper">{CoMsg}</div>
-                    )}
-                    {!isCooperator && (
-                      <div className="mdui-textfield-helper">
-                        Only cooperator can invite cooperator
-                      </div>
-                    )}
+                  <div className="mdui-dialog-content">
+                    <div
+                      className={`mdui-textfield ${
+                        CoErrMsg ? "mdui-textfield-invalid" : ""
+                      }`}
+                    >
+                      <label className="mdui-textfield-label">Invitee ID</label>
+                      <input
+                        onChange={(event) => {
+                          setCoInvitee(event.currentTarget.value);
+                        }}
+                        className="mdui-textfield-input"
+                        type="text"
+                        value={CoInvitee}
+                        disabled={!isCooperator}
+                      ></input>
+                      {CoErrMsg && (
+                        <div className="mdui-textfield-error">{CoErrMsg}</div>
+                      )}
+                      {CoMsg && (
+                        <div className="mdui-textfield-helper">{CoMsg}</div>
+                      )}
+                      {!isCooperator && (
+                        <div className="mdui-textfield-helper">
+                          Only cooperator can invite cooperator
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <button
-                    className={`mdui-btn mdui-color-theme-accent mdui-ripple mdui-btn-dense`}
-                    style={{ marginBottom: 16 }}
-                    disabled={CoInvitee.length < 8 ? true : false}
-                    onClick={handleAddCooperator}
-                  >
-                    {loading ? (
-                      <BeatLoader
-                        size="8px"
-                        color="white"
-                        loading={loading}
-                      ></BeatLoader>
-                    ) : (
-                      "Add"
-                    )}
-                  </button>
-                  {showShareLinkBox &&
-                    shareLinkBox(generateShareLinkForDir(key || ""))}
+
+                  <div className="mdui-dialog-actions">
+                    <button
+                      className={`mdui-btn mdui-color-theme-accent mdui-ripple mdui-btn-dense`}
+                      style={{ marginBottom: 16 }}
+                      disabled={CoInvitee.length < 8 ? true : false}
+                      onClick={handleAddCooperator}
+                    >
+                      {loading ? (
+                        <BeatLoader
+                          size="8px"
+                          color="white"
+                          loading={loading}
+                        ></BeatLoader>
+                      ) : (
+                        "Add"
+                      )}
+                    </button>
+                    {showShareLinkBox &&
+                      shareLinkBox(generateShareLinkForDir(key || ""))}
+                  </div>
                 </div>
               )}
               {index === 1 && (
                 <>
-                  <div style={{ paddingTop: 8 }}>
+                  <div className="mdui-dialog-content">
                     <div style={{ display: "flex" }}>
                       <div>Visibility:</div>
                       <label
@@ -267,35 +272,42 @@ export default function ShareDialog(props: ShareDialogProps) {
                         </div>
                       )}
                     </div>
-                  </div>
-                  {checked && shareLinkBox(generateShareLinkForDir(key || ""))}
-                  {(checked && isCooperator) || (
-                    <div>
-                      <div
-                        className={`mdui-textfield ${
-                          SubErrMsg ? "mdui-textfield-invalid" : ""
-                        }`}
-                      >
-                        <label className="mdui-textfield-label">
-                          Invitee ID
-                        </label>
-                        <input
-                          onChange={(event) => {
-                            setSubInvitee(event.currentTarget.value);
-                          }}
-                          className="mdui-textfield-input"
-                          type="text"
-                          value={SubInvitee}
-                        ></input>
-                        {SubErrMsg && (
-                          <div className="mdui-textfield-error">
-                            {SubErrMsg}
-                          </div>
-                        )}
-                        {SubMsg && (
-                          <div className="mdui-textfield-helper">{SubMsg}</div>
-                        )}
+                    {checked &&
+                      shareLinkBox(generateShareLinkForDir(key || ""))}
+                    {(checked && isCooperator) || (
+                      <div>
+                        <div
+                          className={`mdui-textfield ${
+                            SubErrMsg ? "mdui-textfield-invalid" : ""
+                          }`}
+                        >
+                          <label className="mdui-textfield-label">
+                            Invitee ID
+                          </label>
+                          <input
+                            onChange={(event) => {
+                              setSubInvitee(event.currentTarget.value);
+                            }}
+                            className="mdui-textfield-input"
+                            type="text"
+                            value={SubInvitee}
+                          ></input>
+                          {SubErrMsg && (
+                            <div className="mdui-textfield-error">
+                              {SubErrMsg}
+                            </div>
+                          )}
+                          {SubMsg && (
+                            <div className="mdui-textfield-helper">
+                              {SubMsg}
+                            </div>
+                          )}
+                        </div>
                       </div>
+                    )}
+                  </div>
+                  {(checked && isCooperator) || (
+                    <div className="mdui-dialog-actions">
                       <button
                         className={`mdui-btn mdui-color-theme-accent mdui-ripple mdui-btn-dense`}
                         style={{ marginBottom: 8 }}
