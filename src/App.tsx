@@ -55,14 +55,14 @@ const initiateFabric = async () => {
   const identity = getEnabledIdentity(config);
   if (!identity) throw new Error("no enabled identity");
   const database = await getDatabase();
-  let profile = undefined
+  let profile = undefined;
   try {
-    profile =await database.readUserProfile()
+    profile = await database.readUserProfile();
     if (!profile) {
       profile = await database.initiateUserProfile(identity.label);
     }
   } catch (err) {
-    console.log(err)
+    console.log(err);
     profile = await database.initiateUserProfile(identity.label);
   }
   store.dispatch({ type: "updateUserProfile", payload: profile });
