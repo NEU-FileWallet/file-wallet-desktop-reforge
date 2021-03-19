@@ -18,6 +18,7 @@
     "concurrently": "^6.0.0",
     "electron": "^11.3.0",
     "electron-builder": "^22.9.1",
+    "ts-node": "^9.1.1",
     "wait-on": "^5.2.1"
   },
   "dependencies": {
@@ -57,6 +58,7 @@
     "test": "yarn jest",
     "eject": "craco eject",
     "postinstall": "electron-builder install-app-deps",
+    "benchmark": "ts-node benchmark/*.ts",
     "electron:dev": "concurrently \"yarn start\" \"wait-on http://localhost:3000 && tsc -p electron -w\" \"wait-on http://localhost:3000 && tsc -p electron && electron .\"",
     "electron:build": "yarn build && tsc -p electron && electron-builder"
   },

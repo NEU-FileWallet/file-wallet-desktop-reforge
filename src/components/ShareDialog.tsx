@@ -1,5 +1,4 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
-import { clipboard } from "electron";
 import mdui from "mdui";
 import React, { useEffect, useRef, useState } from "react";
 import { BeatLoader } from "react-spinners";
@@ -139,7 +138,14 @@ export default function ShareDialog(props: ShareDialogProps) {
         <button
           style={{ marginTop: 16 }}
           className="mdui-btn mdui-btn-dense mdui-color-theme-accent"
-          onClick={() => copy(link)}
+          onClick={() => {
+            copy(link);
+            mdui.snackbar({
+              message: "Copied",
+              buttonText: "close",
+              closeOnOutsideClick: false,
+            });
+          }}
         >
           Copy
         </button>

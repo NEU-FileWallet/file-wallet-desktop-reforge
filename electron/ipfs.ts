@@ -1,5 +1,5 @@
 import { ChildProcess, execSync, spawn } from "child_process";
-import { app, ipcMain } from "electron";
+import { app } from "electron";
 import { createReadStream, createWriteStream } from "fs";
 import { platform } from "os";
 import { join, parse } from "path";
@@ -9,6 +9,7 @@ import axios from "axios";
 
 const IpfsHttpClient = require("ipfs-http-client");
 const baseURL = "http://127.0.0.1:5001/api/v0";
+export let ipfsProcess: ChildProcess | undefined;
 
 export let client: any = IpfsHttpClient({
   url: baseURL,
@@ -19,9 +20,6 @@ export let client: any = IpfsHttpClient({
   }),
 });
 
-export let ipfsProcess: ChildProcess | undefined;
-let IPFSPath = undefined;
-
 export enum DownloadStatus {
   Downloading = "Downloading",
   Succeed = "Succeed",
@@ -31,6 +29,7 @@ export interface DownloadFileProps {
   id: string;
   cid: string;
   filePath: string;
+  onProgress?: (report: any) => void;
 }
 
 async function pingIPFS() {
@@ -42,9 +41,7 @@ async function pingIPFS() {
   }
 }
 
-ipcMain.handle("init-Ipfs", (event, path) => {
-  console.log("Initializing ipfs");
-
+export function InitIPFS(path: string) {
   return new Promise((resolve, reject) => {
     pingIPFS().then((alive) => {
       if (alive) {
@@ -66,7 +63,6 @@ ipcMain.handle("init-Ipfs", (event, path) => {
             console.log(data.toString());
             if (data.toString().includes("Daemon is ready")) {
               console.log("Launched a new ipfs instance.");
-              IPFSPath = path;
               resolve(undefined);
             }
           });
@@ -83,25 +79,18 @@ ipcMain.handle("init-Ipfs", (event, path) => {
       }
     });
   });
-});
+}
 
-ipcMain.handle("find-Ipfs-Path", () => {
-  let path = "ipfs";
-  const os = platform();
-  try {
-    return execSync(`${os === "win32" ? "where" : "which"} ipfs`)
-      .toString()
-      .trim();
-  } catch (error) {}
-  try {
-    path = join(app.getPath("userData"), path);
-    execSync(`${path} version`);
-    return path;
-  } catch (error) {}
-  return "";
-});
+export function stopIPFS() {
+  const killed = ipfsProcess?.kill();
+  if (!killed) throw new Error("Can not kill ipfs process");
+}
 
-ipcMain.handle("add-file", async (event, files: string[]) => {
+export function getIPFSClient() {
+  return IpfsHttpClient;
+}
+
+export async function addFiles(files: string[]) {
   if (!files.length) throw new Error("empty file");
 
   const fileMetaList: any[] = [];
@@ -123,59 +112,54 @@ ipcMain.handle("add-file", async (event, files: string[]) => {
     });
   });
   return fileMetaList;
-});
+}
 
-ipcMain.on(
-  "download-file",
-  async (event, { cid, filePath, id }: DownloadFileProps) => {
-    const writeStream = createWriteStream(filePath);
+export async function downloadFile({
+  cid,
+  filePath,
+  id,
+  onProgress,
+}: DownloadFileProps) {
+  const writeStream = createWriteStream(filePath);
 
-    writeStream.once("open", async () => {
-      let transferred = 0;
-      let totalSize = 0;
+  writeStream.once("open", async () => {
+    let transferred = 0;
+    let totalSize = 0;
 
-      const reply = (status: string) => {
-        event.reply("download-progress", {
+    const reply = (status: string) => {
+      if (onProgress) {
+        onProgress({
           transferred,
           totalSize,
           id,
           status,
         });
-      };
-
-      try {
-        const stat = await client.object.stat(cid);
-        totalSize = stat.CumulativeSize;
-        const response = client.get(cid);
-        for await (const file of response) {
-          if (!file.content) continue;
-
-          for await (const chunk of file.content) {
-            transferred += chunk.length;
-            reply(DownloadStatus.Downloading);
-            writeStream.write(chunk);
-          }
-        }
-        reply(DownloadStatus.Succeed);
-      } catch (error) {
-        reply(DownloadStatus.Failed);
-      } finally {
-        writeStream.close();
       }
-    });
-  }
-);
+    };
 
-ipcMain.handle("ping-ipfs", () => {
-  return pingIPFS();
-});
+    try {
+      const stat = await client.object.stat(cid);
+      totalSize = stat.CumulativeSize;
+      const response = client.get(cid);
+      for await (const file of response) {
+        if (!file.content) continue;
 
-ipcMain.handle("stop-ipfs", () => {
-  const killed = ipfsProcess?.kill();
-  if (!killed) throw new Error("Can not kill ipfs process");
-});
+        for await (const chunk of file.content) {
+          transferred += chunk.length;
+          reply(DownloadStatus.Downloading);
+          writeStream.write(chunk);
+        }
+      }
+      reply(DownloadStatus.Succeed);
+    } catch (error) {
+      reply(DownloadStatus.Failed);
+    } finally {
+      writeStream.close();
+    }
+  });
+}
 
-ipcMain.handle("get-file-size", async (event, cid: string) => {
+export async function getFileSize(cid: string) {
   try {
     const { data } = await axios.post(`${baseURL}/object/stat`, undefined, {
       params: { arg: cid },
@@ -185,4 +169,4 @@ ipcMain.handle("get-file-size", async (event, cid: string) => {
   } catch {
     return undefined;
   }
-});
+}
