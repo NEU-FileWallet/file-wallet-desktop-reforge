@@ -1,4 +1,3 @@
-import { ipcRenderer } from "electron";
 import { v4 } from "uuid";
 import { w3cwebsocket } from "websocket";
 import { FabricClient } from "./fabricDatabase";

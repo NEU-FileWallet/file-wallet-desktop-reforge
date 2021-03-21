@@ -11,10 +11,11 @@ import {
   DownloadFileProps,
   getFileSize,
   InitIPFS,
+  pingIPFS,
   stopIPFS,
 } from "./ipfs";
-import { execSync } from "node:child_process";
-import { platform } from "node:os";
+import { execSync } from "child_process";
+import { platform } from "os";
 import { join } from "path";
 
 let win: BrowserWindow | null = null;
@@ -142,6 +143,3 @@ ipcMain.handle("stop-ipfs", () => stopIPFS());
 ipcMain.handle("get-file-size", (event, cid: string) => {
   return getFileSize(cid);
 });
-function pingIPFS(): any {
-  throw new Error("Function not implemented.");
-}

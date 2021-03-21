@@ -1,8 +1,6 @@
-import { ChildProcess, execSync, spawn } from "child_process";
-import { app } from "electron";
+import { ChildProcess, spawn } from "child_process";
 import { createReadStream, createWriteStream } from "fs";
-import { platform } from "os";
-import { join, parse } from "path";
+import { parse } from "path";
 import http from "http";
 import { spawnSync } from "child_process";
 import axios from "axios";
@@ -32,7 +30,7 @@ export interface DownloadFileProps {
   onProgress?: (report: any) => void;
 }
 
-async function pingIPFS() {
+export async function pingIPFS() {
   try {
     const list = await client.swarm.peers();
     return list.length;
