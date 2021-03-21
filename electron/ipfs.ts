@@ -20,7 +20,6 @@ export let client: any = IpfsHttpClient({
 });
 
 export let ipfsProcess: ChildProcess | undefined;
-let IPFSPath = undefined;
 
 export enum DownloadStatus {
   Downloading = "Downloading",
@@ -66,7 +65,6 @@ ipcMain.handle("init-Ipfs", (event, path) => {
             console.log(data.toString());
             if (data.toString().includes("Daemon is ready")) {
               console.log("Launched a new ipfs instance.");
-              IPFSPath = path;
               resolve(undefined);
             }
           });
@@ -171,7 +169,7 @@ ipcMain.handle("ping-ipfs", () => {
 });
 
 ipcMain.handle("stop-ipfs", () => {
-  const killed = ipfsProcess?.kill();
+  const killed = ipfsProcess?.kill(9);
   if (!killed) throw new Error("Can not kill ipfs process");
 });
 
@@ -186,3 +184,8 @@ ipcMain.handle("get-file-size", async (event, cid: string) => {
     return undefined;
   }
 });
+
+app.on('before-quit', () => {
+  ipfsProcess?.kill(9)
+  client.stop()
+})

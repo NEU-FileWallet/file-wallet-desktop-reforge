@@ -25,7 +25,8 @@ import LoadingDialog from "./LoadingDialog";
 import { getDatabase } from "../scripts/fabricDatabase";
 import { useSelector } from "react-redux";
 import { AppState } from "../store/reducer";
-import { importFromFS } from "../scripts/filesystem";
+import { selectFileAndDirectory, upload } from "../scripts/filesystem";
+import ConflictDialog from "./ConflictDialog";
 
 export type BrowserMode = "personal" | "share" | "subscriptions";
 interface ModeFunction {
@@ -71,6 +72,23 @@ async function selectSavePath(defaultName?: string) {
   });
 }
 
+function checkConflict(
+  originalFiles: string[] = [],
+  originalDirectories: string[] = [],
+  newFiles: string[] = [],
+  newFolders: string[] = []
+) {
+  const tempFiles = newFiles.map((f) => parse(f).base);
+  const tempFolders = newFolders.map((fo) => parse(fo).base);
+
+  return {
+    conflictFiles: originalFiles.filter((f) => tempFiles.includes(f)),
+    conflictFolders: originalDirectories.filter((dir) =>
+      tempFolders.includes(dir)
+    ),
+  };
+}
+
 export interface FileBrowserProps {
   rootKey?: string;
   prefix?: string;
@@ -105,6 +123,8 @@ export function FileBrowser(props: FileBrowserProps) {
   const [renameTarget, setRenameTarget] = useState<ItemDetail>();
   const [loadingDialogVis, setLoadingDialogVis] = useState(false);
   const [loadingDialogText, setLoadingDialogText] = useState("");
+  const [conflictDialogVis, setConflictDialogVis] = useState(false);
+  const [conflictDialogContent, setConflictDialogContent] = useState("");
   const userProfile = useSelector((state: AppState) => state.userProfile);
 
   const goBack = () => {
@@ -265,9 +285,25 @@ export function FileBrowser(props: FileBrowserProps) {
   const currentRecord = stack[pointer];
 
   const handleImportFile = async () => {
+    const { folders, files } = await selectFileAndDirectory();
+    const originalDirectories = subDirectories?.map((dir) => dir.name) || [];
+    const originalFiles = currentDir?.files.map((f) => f.name) || [];
+
+    const { conflictFiles, conflictFolders } = checkConflict(
+      originalFiles,
+      originalDirectories,
+      files,
+      folders
+    );
+
+    if (conflictFiles.length || conflictFolders.length) {
+      
+    }
+
     setLoadingDialogText("Importing");
     setLoadingDialogVis(true);
-    await importFromFS(currentRecord.key);
+
+    await upload(currentRecord.key);
     await refreshFilesAndDirs(currentRecord.key);
     setLoadingDialogVis(false);
   };
@@ -475,6 +511,11 @@ export function FileBrowser(props: FileBrowserProps) {
         visible={loadingDialogVis}
         title={loadingDialogText}
       ></LoadingDialog>
+      <ConflictDialog
+        visible={conflictDialogVis}
+        content={conflictDialogContent}
+        onCancel={() => setConflictDialogVis(false)}
+      ></ConflictDialog>
     </div>
   );
 }
