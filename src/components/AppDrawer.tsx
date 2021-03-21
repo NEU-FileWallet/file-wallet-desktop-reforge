@@ -1,3 +1,4 @@
+import mdui from "mdui";
 import React, { CSSProperties, useState } from "react";
 import { useSelector } from "react-redux";
 import { useHistory } from "react-router-dom";
@@ -96,6 +97,11 @@ export default function AppDrawer(props: AppDrawerProps) {
             onClick={() => {
               if (!profile?.id) return;
               copy(profile.id);
+              mdui.snackbar({
+                message: "Copied",
+                buttonText: "close",
+                closeOnOutsideClick: false,
+              });
             }}
           >
             content_copy

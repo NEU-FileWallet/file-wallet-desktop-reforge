@@ -110,9 +110,9 @@ export default class FabricGatewayClient implements FabricClient {
           })
           .catch((err) => reject(err));
       } else if (this.ws.readyState === this.ws.CONNECTING) {
-        reject('connecting')
+        reject("connecting");
       } else {
-        job()
+        job();
       }
     });
   }
@@ -120,7 +120,6 @@ export default class FabricGatewayClient implements FabricClient {
   disconnect() {
     this.autoReconnect = false;
     console.log("client close");
-    console.log(this.ws);
     this.ws?.close();
   }
 }

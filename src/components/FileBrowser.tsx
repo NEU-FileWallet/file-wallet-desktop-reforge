@@ -269,6 +269,27 @@ export function FileBrowser(props: FileBrowserProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pointer, stack]);
 
+  useEffect(() => {
+    const handleDrop = (event: DragEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+      console.log("File Path of dragged files: ", event.dataTransfer?.files);
+    };
+
+    const handleDragOver = (event: DragEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+    };
+
+    document.addEventListener("drop", handleDrop);
+    document.addEventListener("dragover", handleDragOver);
+
+    return () => {
+      document.removeEventListener("drop", handleDrop);
+      document.removeEventListener("dragover", handleDragOver);
+    };
+  }, []);
+
   const breadcrumbItems = stack
     .slice(0, pointer + 1)
     .map((record: HistoryRecord, index) => ({

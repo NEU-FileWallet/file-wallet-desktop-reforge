@@ -1,3 +1,4 @@
+import { ipcRenderer } from "electron";
 import {
   ChaincodeInterface,
   Directory,
@@ -10,24 +11,20 @@ import { processResponse } from "./utils";
 
 type actionType = (functionName: string, ...args: string[]) => Promise<any>;
 
-let database: ChaincodeInterface;
+let database: ChaincodeInterface | undefined;
 
 async function buildDatabase() {
-  const {
-    ccp,
-    identities,
-    channelID,
-    gatewayURL,
-  } = await getConfig();
+  const { ccp, identities, channelID, gatewayURL } = await getConfig();
 
-  const identity = identities.find(i => i.enable)
+  const identity = identities.find((i) => i.enable);
   const options = {
     channelID,
     ccp,
-    username: identity?.label || '',
+    username: identity?.label || "",
     identity: identity?.content,
   };
-  return await FabricDatabase.new(gatewayURL, options);
+  const database = await FabricDatabase.new(gatewayURL, options);
+  return database;
 }
 
 export async function getDatabase() {
@@ -44,6 +41,12 @@ export async function rebuildDatabase() {
   database?.disconnect();
   database = await buildDatabase();
   return database;
+}
+
+export async function disconnect() {
+  const db = await getDatabase();
+  database = undefined;
+  db.disconnect()
 }
 
 export interface FabricClient {
@@ -119,7 +122,7 @@ export default class FabricDatabase implements ChaincodeInterface {
       "InitiateUserProfile",
       name
     );
-    console.log(userProfile)
+    console.log(userProfile);
     if (userProfile) {
       return userProfile;
     } else {
@@ -227,13 +230,13 @@ export default class FabricDatabase implements ChaincodeInterface {
     ids: string[],
     recursive = true
   ) => {
-      return this.submitTransaction(
-        "AddSubscribers",
-        directoryKey,
-        JSON.stringify(ids),
-        JSON.stringify(recursive)
-      );
-    };
+    return this.submitTransaction(
+      "AddSubscribers",
+      directoryKey,
+      JSON.stringify(ids),
+      JSON.stringify(recursive)
+    );
+  };
   addCooperators: (
     directoryKey: string,
     ids: string[],
@@ -243,13 +246,13 @@ export default class FabricDatabase implements ChaincodeInterface {
     ids: string[],
     recursive = true
   ) => {
-      return this.submitTransaction(
-        "AddCooperators",
-        directoryKey,
-        JSON.stringify(ids),
-        JSON.stringify(recursive)
-      );
-    };
+    return this.submitTransaction(
+      "AddCooperators",
+      directoryKey,
+      JSON.stringify(ids),
+      JSON.stringify(recursive)
+    );
+  };
   removeSubscribers: (
     directoryKey: string,
     ids: string[],
@@ -259,13 +262,13 @@ export default class FabricDatabase implements ChaincodeInterface {
     ids: string[],
     recursive = true
   ) => {
-      return this.submitTransaction(
-        "RemoveSubscribers",
-        directoryKey,
-        JSON.stringify(ids),
-        JSON.stringify(recursive)
-      );
-    };
+    return this.submitTransaction(
+      "RemoveSubscribers",
+      directoryKey,
+      JSON.stringify(ids),
+      JSON.stringify(recursive)
+    );
+  };
   removeCooperators: (
     directoryKey: string,
     ids: string[],
@@ -275,11 +278,11 @@ export default class FabricDatabase implements ChaincodeInterface {
     ids: string[],
     recursive = true
   ) => {
-      return this.submitTransaction(
-        "RemoveCooperators",
-        directoryKey,
-        JSON.stringify(ids),
-        JSON.stringify(recursive)
-      );
-    };
+    return this.submitTransaction(
+      "RemoveCooperators",
+      directoryKey,
+      JSON.stringify(ids),
+      JSON.stringify(recursive)
+    );
+  };
 }

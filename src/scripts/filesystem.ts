@@ -23,6 +23,7 @@ export async function importFiles(parentKey: string, files: string[]) {
   if (!files.length) return;
 
   const results: FileMeta[] = await ipcRenderer.invoke("add-file", files);
+  console.log(results);
   await database.addFile(parentKey, results);
 }
 

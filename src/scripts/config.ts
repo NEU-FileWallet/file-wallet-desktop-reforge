@@ -27,8 +27,8 @@ export interface AppConfig {
 
 async function getConfigPath() {
   let userDataPath = "";
-  if (process.env.JEST_WORKER_ID) {
-    userDataPath = "./test_data";
+  if (process.env.USER_DATA) {
+    userDataPath = process.env.USER_DATA;
   } else {
     userDataPath = await ipcRenderer.invoke("getPath", "userData");
   }
