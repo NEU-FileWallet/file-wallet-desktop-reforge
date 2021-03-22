@@ -43,7 +43,7 @@ export function importFolders(parentKey: string, folders: string[]) {
   );
 }
 
-export const importFromFS = async (key: string) => {
+export async function selectFileAndDirectory() {
   let result: any = {
     folders: [],
     files: [],
@@ -72,7 +72,12 @@ export const importFromFS = async (key: string) => {
     });
   }
 
-  const { folders, files } = await classifySelectionResult(result);
+  return await classifySelectionResult(result);
+}
+
+
+
+export const upload = async (key: string, files: string[] = [], folders: string[] = []) => {
   console.log(folders, files);
   await Promise.all([importFiles(key, files), importFolders(key, folders)]);
 };

@@ -25,7 +25,8 @@ import LoadingDialog from "./LoadingDialog";
 import { getDatabase } from "../scripts/fabricDatabase";
 import { useSelector } from "react-redux";
 import { AppState } from "../store/reducer";
-import { importFromFS } from "../scripts/filesystem";
+import { selectFileAndDirectory, upload } from "../scripts/filesystem";
+import ConflictDialog from "./ConflictDialog";
 
 export type BrowserMode = "personal" | "share" | "subscriptions";
 interface ModeFunction {
@@ -71,6 +72,22 @@ async function selectSavePath(defaultName?: string) {
   });
 }
 
+function checkConflict(
+  originalFiles: string[] = [],
+  originalDirectories: string[] = [],
+  newFiles: string[] = [],
+  newFolders: string[] = []
+) {
+  return {
+    conflictFiles: newFiles.filter((newFile) =>
+      originalFiles.find((of) => of === parse(newFile).base)
+    ),
+    conflictFolders: newFolders.filter((newFolder) =>
+      originalDirectories.find((od) => od === parse(newFolder).base)
+    ),
+  };
+}
+
 export interface FileBrowserProps {
   rootKey?: string;
   prefix?: string;
@@ -105,6 +122,11 @@ export function FileBrowser(props: FileBrowserProps) {
   const [renameTarget, setRenameTarget] = useState<ItemDetail>();
   const [loadingDialogVis, setLoadingDialogVis] = useState(false);
   const [loadingDialogText, setLoadingDialogText] = useState("");
+  const [conflictDialogVis, setConflictDialogVis] = useState(false);
+  const [conflictFolders, setConflictFolders] = useState<string[]>([]);
+  const [conflictFiles, setConflictFiles] = useState<string[]>([]);
+  const [pendingFiles, setPendingFiles] = useState<string[]>([]);
+  const [pendingFolder, setPendingFolder] = useState<string[]>([]);
   const userProfile = useSelector((state: AppState) => state.userProfile);
 
   const goBack = () => {
@@ -285,12 +307,56 @@ export function FileBrowser(props: FileBrowserProps) {
 
   const currentRecord = stack[pointer];
 
-  const handleImportFile = async () => {
+  const handleImport = async (files: string[], folders: string[]) => {
     setLoadingDialogText("Importing");
     setLoadingDialogVis(true);
-    await importFromFS(currentRecord.key);
+
+    await upload(currentRecord.key, files, folders);
     await refreshFilesAndDirs(currentRecord.key);
     setLoadingDialogVis(false);
+  };
+
+  const beforeImport = async () => {
+    const { folders, files } = await selectFileAndDirectory();
+    const originalDirectories = subDirectories?.map((dir) => dir.name) || [];
+    const originalFiles = currentDir?.files.map((f) => f.name) || [];
+
+    const { conflictFiles, conflictFolders } = checkConflict(
+      originalFiles,
+      originalDirectories,
+      files,
+      folders
+    );
+
+    console.log(conflictFiles, conflictFolders);
+
+    if (conflictFiles.length || conflictFolders.length) {
+      setPendingFiles(files);
+      setPendingFolder(folders);
+      setConflictDialogVis(true);
+      setConflictFiles(conflictFiles);
+      setConflictFolders(conflictFolders);
+    } else {
+      await handleImport(files, folders);
+    }
+  };
+
+  const handleOverwrite = async () => {
+    const database = await getDatabase();
+    if (conflictFiles.length) {
+      await database.removeFile(
+        currentRecord.key,
+        conflictFiles.map((f) => parse(f).base)
+      );
+    }
+    if (conflictFolders.length) {
+      await database.removeDirectories(
+        currentRecord.key,
+        conflictFolders.map((f) => parse(f).base)
+      );
+    }
+    setConflictDialogVis(false);
+    await handleImport(pendingFiles, pendingFolder);
   };
 
   const handleImportFromLink = async (link: ItemMeta) => {
@@ -411,7 +477,7 @@ export function FileBrowser(props: FileBrowserProps) {
       }}
     >
       <FileBrowserHeader
-        importFile={handleImportFile}
+        importFile={beforeImport}
         newFolder={showNewFolderDialog}
         showCreateFolder={!!showCreateFolder && isCooperator}
         showImport={!!showImport && isCooperator}
@@ -496,6 +562,15 @@ export function FileBrowser(props: FileBrowserProps) {
         visible={loadingDialogVis}
         title={loadingDialogText}
       ></LoadingDialog>
+      <ConflictDialog
+        style={{ width: 500 }}
+        visible={conflictDialogVis}
+        onCancel={() => setConflictDialogVis(false)}
+        onClose={() => setConflictDialogVis(false)}
+        conflictFiles={conflictFiles}
+        conflictFolders={conflictFolders}
+        onOverwrite={handleOverwrite}
+      ></ConflictDialog>
     </div>
   );
 }
