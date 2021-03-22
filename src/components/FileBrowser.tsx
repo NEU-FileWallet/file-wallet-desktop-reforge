@@ -78,13 +78,12 @@ function checkConflict(
   newFiles: string[] = [],
   newFolders: string[] = []
 ) {
-  const tempFiles = newFiles.map((f) => parse(f).base);
-  const tempFolders = newFolders.map((fo) => parse(fo).base);
-
   return {
-    conflictFiles: originalFiles.filter((f) => tempFiles.includes(f)),
-    conflictFolders: originalDirectories.filter((dir) =>
-      tempFolders.includes(dir)
+    conflictFiles: newFiles.filter((newFile) =>
+      originalFiles.find((of) => of === parse(newFile).base)
+    ),
+    conflictFolders: newFolders.filter((newFolder) =>
+      originalDirectories.find((od) => od === parse(newFolder).base)
     ),
   };
 }
@@ -124,7 +123,10 @@ export function FileBrowser(props: FileBrowserProps) {
   const [loadingDialogVis, setLoadingDialogVis] = useState(false);
   const [loadingDialogText, setLoadingDialogText] = useState("");
   const [conflictDialogVis, setConflictDialogVis] = useState(false);
-  const [conflictDialogContent, setConflictDialogContent] = useState("");
+  const [conflictFolders, setConflictFolders] = useState<string[]>([]);
+  const [conflictFiles, setConflictFiles] = useState<string[]>([]);
+  const [pendingFiles, setPendingFiles] = useState<string[]>([]);
+  const [pendingFolder, setPendingFolder] = useState<string[]>([]);
   const userProfile = useSelector((state: AppState) => state.userProfile);
 
   const goBack = () => {
@@ -305,7 +307,16 @@ export function FileBrowser(props: FileBrowserProps) {
 
   const currentRecord = stack[pointer];
 
-  const handleImportFile = async () => {
+  const handleImport = async (files: string[], folders: string[]) => {
+    setLoadingDialogText("Importing");
+    setLoadingDialogVis(true);
+
+    await upload(currentRecord.key, files, folders);
+    await refreshFilesAndDirs(currentRecord.key);
+    setLoadingDialogVis(false);
+  };
+
+  const beforeImport = async () => {
     const { folders, files } = await selectFileAndDirectory();
     const originalDirectories = subDirectories?.map((dir) => dir.name) || [];
     const originalFiles = currentDir?.files.map((f) => f.name) || [];
@@ -317,16 +328,35 @@ export function FileBrowser(props: FileBrowserProps) {
       folders
     );
 
+    console.log(conflictFiles, conflictFolders);
+
     if (conflictFiles.length || conflictFolders.length) {
-      
+      setPendingFiles(files);
+      setPendingFolder(folders);
+      setConflictDialogVis(true);
+      setConflictFiles(conflictFiles);
+      setConflictFolders(conflictFolders);
+    } else {
+      await handleImport(files, folders);
     }
+  };
 
-    setLoadingDialogText("Importing");
-    setLoadingDialogVis(true);
-
-    await upload(currentRecord.key);
-    await refreshFilesAndDirs(currentRecord.key);
-    setLoadingDialogVis(false);
+  const handleOverwrite = async () => {
+    const database = await getDatabase();
+    if (conflictFiles.length) {
+      await database.removeFile(
+        currentRecord.key,
+        conflictFiles.map((f) => parse(f).base)
+      );
+    }
+    if (conflictFolders.length) {
+      await database.removeDirectories(
+        currentRecord.key,
+        conflictFolders.map((f) => parse(f).base)
+      );
+    }
+    setConflictDialogVis(false);
+    await handleImport(pendingFiles, pendingFolder);
   };
 
   const handleImportFromLink = async (link: ItemMeta) => {
@@ -447,7 +477,7 @@ export function FileBrowser(props: FileBrowserProps) {
       }}
     >
       <FileBrowserHeader
-        importFile={handleImportFile}
+        importFile={beforeImport}
         newFolder={showNewFolderDialog}
         showCreateFolder={!!showCreateFolder && isCooperator}
         showImport={!!showImport && isCooperator}
@@ -533,9 +563,13 @@ export function FileBrowser(props: FileBrowserProps) {
         title={loadingDialogText}
       ></LoadingDialog>
       <ConflictDialog
+        style={{ width: 500 }}
         visible={conflictDialogVis}
-        content={conflictDialogContent}
         onCancel={() => setConflictDialogVis(false)}
+        onClose={() => setConflictDialogVis(false)}
+        conflictFiles={conflictFiles}
+        conflictFolders={conflictFolders}
+        onOverwrite={handleOverwrite}
       ></ConflictDialog>
     </div>
   );

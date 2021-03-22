@@ -1,38 +1,57 @@
-import React from "react";
+import React, { useState } from "react";
 import Dialog, { DialogProps } from "./Dialog";
 import LoadingButton from "./LoadingButton";
 
 export interface OverWriteDialogProps extends DialogProps {
-  onOk?: () => any;
+  onOverwrite?: () => any;
   onCancel?: () => any;
-  onCopy?: () => any
-  conflictFiles?: string[]
-  conflictFolders?: string[]
+  onDuplicate?: () => any;
+  conflictFiles?: string[];
+  conflictFolders?: string[];
 }
 
 export default function ConflictDialog(props: OverWriteDialogProps) {
-  const { onOk, onCancel, onCopy, conflictFiles, conflictFolders, ...otherProps } = props;
-
-
+  const {
+    onOverwrite,
+    onCancel,
+    onDuplicate,
+    conflictFiles = [],
+    conflictFolders = [],
+    ...otherProps
+  } = props;
+  const [loading, setLoading] = useState(false);
 
   return (
-    <Dialog {...otherProps}>
-      <div className="mdui-dialog-title">Overwrite</div>
+    <Dialog persistent {...otherProps}>
+      <div className="mdui-dialog-title">
+        There are some conflicts in your folder
+      </div>
       <div className="mdui-dialog-content">
-          <div>
-            The 
-          </div>
+        {conflictFolders?.length > 0 && (
+          <div>Conflict folders: {conflictFolders?.join(" ")}</div>
+        )}
+        {conflictFiles?.length > 0 && (
+          <div>Conflict files: {conflictFiles?.join(" ")}</div>
+        )}
       </div>
       <div className="mdui-dialog-actions">
-            <button className="mdui-btn">   
-                Cancel
-            </button>
-            <button className="mdui-btn">
-                OnCopy
-            </button>
-            {/* <LoadingButton>
-                Overwrite
-            </LoadingButton> */}
+        <button disabled={loading} className="mdui-btn" onClick={onCancel}>
+          Cancel
+        </button>
+
+        <LoadingButton
+          loading={loading}
+          onClick={async () => {
+            setLoading(true);
+            if (onOverwrite) {
+              await onOverwrite();
+            }
+            setLoading(false);
+          }}
+        >
+          Overwrite
+        </LoadingButton>
+        {/* <LoadingButton loading={loading}>Duplicate</LoadingButton> */}
       </div>
     </Dialog>
   );
