@@ -49,35 +49,30 @@ export async function selectFileAndDirectory() {
     files: [],
   };
 
-  if (platform() === "win32") {
-    result = await remote.dialog.showOpenDialog(remote.getCurrentWindow(), {
-      properties: [
-        "openFile",
-        "multiSelections",
-        "createDirectory",
-        "showHiddenFiles",
-      ],
-      message: "Select files/folders.",
-    });
-  } else {
-    result = await remote.dialog.showOpenDialog(remote.getCurrentWindow(), {
-      properties: [
-        "openFile",
-        "openDirectory",
-        "multiSelections",
-        "createDirectory",
-        "showHiddenFiles",
-      ],
-      message: "Select files/folders.",
-    });
+  const properties: any[] = [
+    "openFile",
+    "multiSelections",
+    "createDirectory",
+    "showHiddenFiles",
+  ];
+
+  if (platform() === "darwin") {
+    properties.push("openDirectory");
   }
+  
+  result = await remote.dialog.showOpenDialog(remote.getCurrentWindow(), {
+    properties,
+    message: "Select files/folders.",
+  });
 
   return await classifySelectionResult(result);
 }
 
-
-
-export const upload = async (key: string, files: string[] = [], folders: string[] = []) => {
+export const upload = async (
+  key: string,
+  files: string[] = [],
+  folders: string[] = []
+) => {
   console.log(folders, files);
   await Promise.all([importFiles(key, files), importFolders(key, folders)]);
 };
