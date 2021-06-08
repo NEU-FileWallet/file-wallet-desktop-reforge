@@ -59,6 +59,8 @@ export default function ImportDialog(props: ImportDialogProps) {
   };
 
 
+  dialogRef.current?.update()
+
   return (
     <Dialog
       ref={dialogRef}

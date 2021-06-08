@@ -1,4 +1,3 @@
-import { ipcRenderer } from "electron";
 import {
   ChaincodeInterface,
   Directory,

@@ -308,6 +308,8 @@ export function FileBrowser(props: FileBrowserProps) {
   const currentRecord = stack[pointer];
 
   const handleImport = async (files: string[], folders: string[]) => {
+    if (files.length === 0 && folders.length === 0) return
+
     setLoadingDialogText("Importing");
     setLoadingDialogVis(true);
 
